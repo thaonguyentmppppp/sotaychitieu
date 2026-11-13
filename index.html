@@ -1,0 +1,3001 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GV Bất Ổn">
+    <title>Giáo Viên Bất Ổn – Tài Chính Bất Lực</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Plus Jakarta Sans', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #e0f2fe 0%, #f0f9ff 45%, #f1f5f9 100%);
+            color: #0f172a;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .card-premium {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-premium:hover {
+            box-shadow: 0 20px 35px -12px rgba(79, 70, 229, 0.08), 0 8px 16px -6px rgba(15, 23, 42, 0.04);
+        }
+        .tab-content { display: none; animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseAlert {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.35); }
+            50% { box-shadow: 0 0 0 8px rgba(225, 29, 72, 0); }
+        }
+        .alert-pulse { animation: pulseAlert 2s infinite; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+        /* Prevent iOS Safari auto-zoom on input focus */
+        @media screen and (max-width: 768px) {
+            input, select, textarea { font-size: 16px !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-28 md:pb-12">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] flex flex-col items-center gap-2 pointer-events-none w-full max-w-md px-4"></div>
+
+    <!-- SYSTEM BANNER (From Admin) -->
+    <div id="systemBanner" class="hidden bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white px-4 py-2 text-xs sm:text-sm font-medium shadow-sm z-40">
+        <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <i data-lucide="megaphone" class="w-4 h-4 shrink-0 animate-bounce"></i>
+                <span id="systemBannerText" class="line-clamp-2">Thông báo hệ thống</span>
+            </div>
+            <button onclick="document.getElementById('systemBanner').classList.add('hidden')" class="p-1 hover:bg-white/20 rounded-lg shrink-0">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- AUTHENTICATION SCREEN -->
+    <div id="authScreen" class="fixed inset-0 z-50 bg-gradient-to-br from-sky-950 via-teal-950 to-slate-900 flex items-center justify-center p-4 overflow-y-auto">
+        <!-- Decorative glowing orbs -->
+        <div class="fixed top-10 left-10 w-72 h-72 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="fixed bottom-10 right-10 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="bg-white/95 backdrop-blur-xl w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 space-y-5 my-auto border border-white/40 relative z-10">
+            <div class="text-center">
+                <!-- Logo hình tờ tiền màu xanh -->
+                <div class="relative inline-block mb-3">
+                    <div class="w-20 h-20 bg-gradient-to-tr from-sky-500 via-cyan-500 to-teal-400 text-white rounded-full p-1 flex items-center justify-center mx-auto shadow-xl shadow-sky-500/30 ring-4 ring-sky-100 overflow-hidden">
+                        <svg viewBox="0 0 120 120" class="w-full h-full rounded-full bg-gradient-to-b from-sky-100 to-teal-50">
+                            <!-- Tờ tiền lớp dưới -->
+                            <g transform="rotate(-14 60 60)">
+                                <rect x="20" y="38" width="80" height="46" rx="7" fill="#0d9488" />
+                                <rect x="25" y="43" width="70" height="36" rx="4" fill="none" stroke="#99f6e4" stroke-width="1.5" stroke-dasharray="3 2" />
+                            </g>
+                            <!-- Tờ tiền chính màu xanh 500k -->
+                            <g transform="rotate(6 60 60)">
+                                <rect x="18" y="36" width="84" height="48" rx="8" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
+                                <rect x="24" y="42" width="72" height="36" rx="5" fill="#0369a1" stroke="#7dd3fc" stroke-width="1.5" />
+                                <!-- Góc trang trí tờ tiền -->
+                                <circle cx="28" cy="46" r="3" fill="#38bdf8" />
+                                <circle cx="92" cy="46" r="3" fill="#38bdf8" />
+                                <circle cx="28" cy="74" r="3" fill="#38bdf8" />
+                                <circle cx="92" cy="74" r="3" fill="#38bdf8" />
+                                <!-- Vòng tròn mệnh giá ở giữa -->
+                                <circle cx="60" cy="60" r="14" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2" />
+                                <text x="60" y="66" text-anchor="middle" fill="#0369a1" font-size="18" font-weight="900" font-family="sans-serif">₫</text>
+                            </g>
+                            <!-- Hiệu ứng lấp lánh -->
+                            <circle cx="28" cy="28" r="3" fill="#38bdf8" />
+                            <circle cx="94" cy="30" r="2.5" fill="#14b8a6" />
+                            <circle cx="88" cy="92" r="3" fill="#0ea5e9" />
+                        </svg>
+                    </div>
+                </div>
+                <h2 id="authTitle" class="text-xl sm:text-2xl font-display font-extrabold text-slate-900 tracking-tight leading-snug uppercase">
+                    GIÁO VIÊN BẤT ỔN<br><span class="text-sky-600">TÀI CHÍNH BẤT LỰC</span>
+                </h2>
+            </div>
+
+            <form id="authForm" class="space-y-4">
+                <div id="nameFieldWrap" class="hidden">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Họ và tên hiển thị</label>
+                    <input type="text" id="authName" placeholder="VD: Cô Minh Anh" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Email tài khoản</label>
+                    <input type="email" id="authEmail" required placeholder="nhap.email@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Mật khẩu</label>
+                    <div class="relative">
+                        <input type="password" id="authPassword" required placeholder="••••••••" minlength="4" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 pr-10">
+                        <button type="button" onclick="togglePassInput('authPassword')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <label class="flex items-center gap-2 text-slate-600 cursor-pointer select-none">
+                        <input type="checkbox" id="rememberMe" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+                        <span>Ghi nhớ đăng nhập & mật khẩu</span>
+                    </label>
+                </div>
+                <button type="submit" id="authSubmitBtn" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-600 to-teal-600 hover:from-sky-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-sky-200 transition active:scale-[0.99]">
+                    Đăng nhập vào hệ thống
+                </button>
+            </form>
+
+            <!-- Quick Saved Accounts -->
+            <div id="savedAccountsBox" class="hidden pt-2 border-t border-slate-100">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Tài khoản đã lưu trên máy này:</p>
+                <div id="savedAccountsList" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <div class="text-center text-xs sm:text-sm text-slate-600 pt-2 border-t border-slate-100">
+                <span id="authToggleText">Chưa có tài khoản?</span>
+                <button type="button" onclick="toggleAuthMode()" id="authToggleBtn" class="font-bold text-sky-600 hover:underline ml-1">Đăng ký ngay</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APPLICATION -->
+    <div id="mainApp" class="hidden flex-1 flex flex-col">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 glass border-b border-slate-200/80 shadow-sm">
+            <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-sky-500 via-cyan-500 to-teal-400 p-0.5 flex items-center justify-center text-white shadow-md shadow-sky-200 overflow-hidden shrink-0">
+                        <svg viewBox="0 0 120 120" class="w-full h-full rounded-full bg-gradient-to-b from-sky-100 to-teal-50">
+                            <g transform="rotate(-12 60 60)">
+                                <rect x="20" y="38" width="80" height="46" rx="7" fill="#0d9488" />
+                            </g>
+                            <g transform="rotate(6 60 60)">
+                                <rect x="18" y="36" width="84" height="48" rx="8" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
+                                <rect x="24" y="42" width="72" height="36" rx="5" fill="#0369a1" stroke="#7dd3fc" stroke-width="1.5" />
+                                <circle cx="60" cy="60" r="13" fill="#e0f2fe" />
+                                <text x="60" y="66" text-anchor="middle" fill="#0369a1" font-size="17" font-weight="900" font-family="sans-serif">₫</text>
+                            </g>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-display font-extrabold text-xs sm:text-sm md:text-base text-slate-900 tracking-tight uppercase leading-tight">
+                                GIÁO VIÊN BẤT ỔN <span class="text-sky-600 block sm:inline">• TÀI CHÍNH BẤT LỰC</span>
+                            </h1>
+                        </div>
+                        <p class="text-[11px] text-slate-500" id="headerGreeting">Xin chào!</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- Class Timer 45m Quick Button -->
+                    <button onclick="openTimerModal()" class="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 transition flex items-center gap-1.5 text-xs font-bold" title="Đồng hồ canh tiết học 45p / kiểm tra">
+                        <i data-lucide="timer" class="w-4 h-4"></i>
+                        <span id="headerTimerBadge" class="hidden sm:inline">Canh tiết</span>
+                    </button>
+
+                    <!-- Privacy Eye Button -->
+                    <button onclick="togglePrivacyMask()" id="privacyBtn" class="p-2.5 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 transition flex items-center gap-1.5 text-xs font-semibold" title="Ẩn/Hiện số tiền nhạy cảm">
+                        <i data-lucide="eye" id="privacyIcon" class="w-4 h-4"></i>
+                        <span class="hidden md:inline" id="privacyLabel">Hiện số tiền</span>
+                    </button>
+
+                    <!-- Change Password / Account Info -->
+                    <button onclick="openPasswordModal()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5 text-xs font-semibold" title="Đổi mật khẩu">
+                        <i data-lucide="key-round" class="w-4 h-4"></i>
+                        <span class="hidden lg:inline" id="userEmailDisplay">user@email.com</span>
+                    </button>
+
+                    <!-- Logout -->
+                    <button onclick="handleLogout()" class="p-2.5 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition" title="Đăng xuất">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Desktop Navigation Tabs -->
+        <div class="hidden md:flex max-w-6xl mx-auto w-full px-4 pt-5 gap-2 flex-wrap">
+            <button onclick="switchTab('tabDayThay')" class="tab-btn active px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-200" data-target="tabDayThay">
+                <i data-lucide="calendar-check-2" class="w-4 h-4"></i> Sổ Dạy Thay
+            </button>
+            <button onclick="switchTab('tabChiTieu')" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200" data-target="tabChiTieu">
+                <i data-lucide="wallet" class="w-4 h-4"></i> Sổ Chi Tiêu & Ngân Sách
+            </button>
+            <button onclick="switchTab('tabTKB')" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200" data-target="tabTKB">
+                <i data-lucide="calendar-days" class="w-4 h-4"></i> Lịch Trống & TKB
+            </button>
+            <button onclick="switchTab('tabGhiChu')" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200" data-target="tabGhiChu">
+                <i data-lucide="check-square" class="w-4 h-4"></i> Ghi Chú & Checklist
+            </button>
+            <button onclick="switchTab('tabAdmin')" id="navAdminDesktop" class="tab-btn hidden px-4 py-2.5 rounded-xl font-bold text-sm transition items-center gap-2 bg-rose-600 text-white shadow-md shadow-rose-200" data-target="tabAdmin">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i> Quản Trị Admin
+            </button>
+        </div>
+
+        <!-- MAIN WORKSPACE -->
+        <main class="max-w-6xl mx-auto w-full px-3.5 sm:px-4 py-4 sm:py-5 flex-1">
+            
+            <!-- ==================== TAB 1: SỔ DẠY THAY ==================== -->
+            <section id="tabDayThay" class="tab-content active space-y-5">
+                
+                <!-- Overdue Debt Reminder Banner (> 7 days unpaid) -->
+                <div id="overdueDebtBanner" class="hidden rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white p-4 shadow-lg">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0 text-xl">🔔</div>
+                            <div>
+                                <h4 class="font-display font-extrabold text-xs sm:text-sm uppercase tracking-wide">Nhắc nhở: Có khoản dạy thay đã quá 7 ngày chưa thu!</h4>
+                                <p id="overdueDebtText" class="text-xs text-amber-50 mt-0.5 font-medium"></p>
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('teacherSummaryGrid').scrollIntoView({behavior:'smooth'})" class="self-start sm:self-center px-3 py-1.5 rounded-xl bg-white text-orange-700 font-extrabold text-xs shrink-0 shadow-sm">
+                            Xem & Đòi nợ khéo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Top Summary KPI Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="card-premium rounded-2xl p-3.5 sm:p-5 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition"></div>
+                        <div class="flex items-center justify-between text-[11px] sm:text-xs font-bold text-slate-500 tracking-wide">
+                            <span>CHƯA THU</span>
+                            <span class="p-1.5 sm:p-2 rounded-xl bg-amber-50 text-amber-600 shadow-sm"><i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+                        </div>
+                        <div class="text-lg sm:text-2xl font-display font-extrabold text-amber-600 mt-1.5 money-mask" id="kpiUnpaidMoney">0 ₫</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5" id="kpiUnpaidSub">0 buổi dạy</div>
+                    </div>
+
+                    <div class="card-premium rounded-2xl p-3.5 sm:p-5 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition"></div>
+                        <div class="flex items-center justify-between text-[11px] sm:text-xs font-bold text-slate-500 tracking-wide">
+                            <span>ĐÃ THU TIỀN</span>
+                            <span class="p-1.5 sm:p-2 rounded-xl bg-emerald-50 text-emerald-600 shadow-sm"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+                        </div>
+                        <div class="text-lg sm:text-2xl font-display font-extrabold text-emerald-600 mt-1.5 money-mask" id="kpiPaidMoney">0 ₫</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5" id="kpiPaidSub">0 buổi dạy</div>
+                    </div>
+
+                    <div class="card-premium rounded-2xl p-3.5 sm:p-5 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition"></div>
+                        <div class="flex items-center justify-between text-[11px] sm:text-xs font-bold text-slate-500 tracking-wide">
+                            <span>NỢ ĐỔI TIẾT</span>
+                            <span class="p-1.5 sm:p-2 rounded-xl bg-indigo-50 text-indigo-600 shadow-sm"><i data-lucide="repeat" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+                        </div>
+                        <div class="text-lg sm:text-2xl font-display font-extrabold text-indigo-600 mt-1.5" id="kpiSwapPeriods">0 tiết</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5" id="kpiSwapSub">Chờ dạy trả tiết</div>
+                    </div>
+
+                    <div class="card-premium rounded-2xl p-3.5 sm:p-5 relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 w-20 h-20 bg-violet-500/10 rounded-full blur-xl group-hover:bg-violet-500/20 transition"></div>
+                        <div class="flex items-center justify-between text-[11px] sm:text-xs font-bold text-slate-500 tracking-wide">
+                            <span>TỔNG SỐ TIẾT</span>
+                            <span class="p-1.5 sm:p-2 rounded-xl bg-violet-50 text-violet-600 shadow-sm"><i data-lucide="layers" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i></span>
+                        </div>
+                        <div class="text-lg sm:text-2xl font-display font-extrabold text-slate-900 mt-1.5" id="kpiTotalPeriods">0 tiết</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5" id="kpiTotalTeachers">0 giáo viên</div>
+                    </div>
+                </div>
+
+                <!-- Add Substitute Form (Collapsible on Mobile for clean scrolling) -->
+                <div class="card-premium rounded-3xl p-4 sm:p-6" id="cardFormDayThay">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-display font-bold text-slate-900 flex items-center gap-2 text-sm sm:text-base">
+                                <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i> Ghi nhận buổi dạy thay mới
+                            </h3>
+                            <button type="button" onclick="toggleMobileCollapse('formDayThayWrap', 'iconCollapseDt')" class="md:hidden px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold flex items-center gap-1">
+                                <span>Thu gọn</span>
+                                <i data-lucide="chevron-up" id="iconCollapseDt" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                        <!-- Mode Switcher: Tính Tiền vs Đổi Tiết -->
+                        <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold self-start">
+                            <button type="button" id="modeMoneyBtn" onclick="setSubMode('money')" class="px-3 py-1.5 rounded-lg bg-white text-indigo-600 shadow-sm transition">
+                                💰 Tính tiền dạy thay
+                            </button>
+                            <button type="button" id="modeSwapBtn" onclick="setSubMode('swap')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">
+                                🔄 Đổi tiết / Dạy bù
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="formDayThayWrap" class="pt-4">
+                        <form id="formDayThay" class="space-y-4">
+                            <input type="hidden" id="dtMode" value="money">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Ngày dạy thay *</label>
+                                    <input type="date" id="dtDate" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-indigo-600 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Buổi dạy *</label>
+                                    <select id="dtSession" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm bg-white focus:border-indigo-600 outline-none">
+                                        <option value="Sáng">🌅 Buổi Sáng</option>
+                                        <option value="Chiều">☀️ Buổi Chiều</option>
+                                        <option value="Tối">🌙 Buổi Tối</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Dạy thay cho GV nào? *</label>
+                                    <input type="text" id="dtTeacher" list="teacherSuggestions" required placeholder="VD: Cô Lan, Thầy Hùng..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-indigo-600 outline-none">
+                                    <datalist id="teacherSuggestions"></datalist>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Trường / Trung tâm</label>
+                                    <input type="text" id="dtSchool" list="schoolSuggestions" placeholder="VD: THPT Chuyên, TT Anh Ngữ..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-indigo-600 outline-none">
+                                    <datalist id="schoolSuggestions"></datalist>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Tên môn / Lớp / Phòng</label>
+                                    <input type="text" id="dtSubject" placeholder="VD: Toán 10A2 - P.201" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-indigo-600 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Số tiết / Số ca *</label>
+                                    <input type="number" id="dtPeriods" value="2" min="0.5" step="0.5" required oninput="autoCalcSubTotal()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:border-indigo-600 outline-none">
+                                </div>
+                                <div id="rateInputWrap">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Đơn giá / tiết (VNĐ)</label>
+                                    <input type="number" id="dtRate" value="80000" step="1000" oninput="autoCalcSubTotal()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-indigo-600 outline-none">
+                                </div>
+                                <div id="totalMoneyWrap">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Thành tiền (VNĐ) *</label>
+                                    <input type="number" id="dtMoney" value="160000" step="1000" required class="w-full px-3 py-2 rounded-xl border border-indigo-300 bg-indigo-50/50 text-sm font-extrabold text-indigo-700 focus:border-indigo-600 outline-none">
+                                </div>
+                            </div>
+
+                        <!-- Quick Price Chips -->
+                        <div id="quickPriceBar" class="flex flex-wrap items-center gap-1.5 pt-1">
+                            <span class="text-[11px] font-semibold text-slate-400 mr-1">Chọn nhanh:</span>
+                            <button type="button" onclick="applyQuickRate(50000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 transition">50k/tiết</button>
+                            <button type="button" onclick="applyQuickRate(70000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 transition">70k/tiết</button>
+                            <button type="button" onclick="applyQuickRate(80000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 transition">80k/tiết</button>
+                            <button type="button" onclick="applyQuickRate(100000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 transition">100k/tiết</button>
+                            <button type="button" onclick="applyQuickRate(120000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 transition">120k/tiết</button>
+                            <span class="text-slate-300 mx-1">|</span>
+                            <button type="button" onclick="applyFlatTotal(200000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">Trọn buổi 200k</button>
+                            <button type="button" onclick="applyFlatTotal(300000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">Trọn buổi 300k</button>
+                            <button type="button" onclick="applyFlatTotal(500000)" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">Trọn buổi 500k</button>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                                <input type="checkbox" id="dtSyncIncome" checked class="rounded text-indigo-600">
+                                <span>Tự động cộng vào <b>Sổ Chi Tiêu (Thu nhập)</b> khi bấm "Đã thu tiền"</span>
+                            </label>
+                            <button type="submit" class="w-full sm:w-auto px-6 py-3 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-md shadow-indigo-200 transition flex justify-center items-center gap-2 active:scale-[0.98]">
+                                <i data-lucide="save" class="w-4 h-4"></i> Lưu buổi dạy thay
+                            </button>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+
+                <!-- Teacher Summary Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 flex items-center gap-2 text-base">
+                                <i data-lucide="users" class="w-5 h-5 text-indigo-600"></i> Tổng hợp theo Giáo viên & Tạo bảng kê Zalo
+                            </h3>
+                            <p class="text-xs text-slate-500">Bấm "Tạo bảng kê Zalo" để sao chép nhanh tin nhắn nhắc khéo gửi đồng nghiệp</p>
+                        </div>
+                        <button onclick="exportDayThayCSV()" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center gap-1.5 transition">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Xuất file Excel (.CSV)
+                        </button>
+                    </div>
+                    <div id="teacherSummaryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        <!-- JS Injected -->
+                    </div>
+                </div>
+
+                <!-- Filter & Detailed List -->
+                <div class="space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200">
+                        <div class="flex items-center gap-2 flex-1">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 ml-1"></i>
+                            <input type="text" id="filterDtSearch" oninput="refreshDayThayUI()" placeholder="Tìm theo tên GV, lớp, trường..." class="w-full text-xs sm:text-sm outline-none">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="filterDtStatus" onchange="refreshDayThayUI()" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold bg-slate-50 outline-none">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="unpaid">⏳ Chưa thu tiền / Chưa trả tiết</option>
+                                <option value="paid">✅ Đã thanh toán / Đã trả tiết</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="listDayThay" class="space-y-2.5">
+                        <!-- JS Injected -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== TAB 2: SỔ CHI TIÊU & NGÂN SÁCH ==================== -->
+            <section id="tabChiTieu" class="tab-content space-y-6">
+                
+                <!-- Prominent Over-Budget Alert Banner -->
+                <div id="spendingWarningBanner" class="hidden rounded-2xl bg-gradient-to-r from-rose-600 via-red-600 to-orange-600 text-white p-4 sm:p-5 shadow-xl alert-pulse">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="flex items-start gap-3.5">
+                            <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 mt-0.5 text-2xl">
+                                😭
+                            </div>
+                            <div>
+                                <h4 class="font-display font-extrabold text-sm sm:text-base tracking-tight uppercase flex items-center gap-2">
+                                    BÁO ĐỘNG ĐỎ: TÀI CHÍNH BẤT LỰC THẬT SỰ RỒI!
+                                </h4>
+                                <p id="funnyPoorQuoteBox" class="mt-1.5 text-xs sm:text-sm bg-black/25 px-3 py-2 rounded-xl text-amber-200 font-bold italic border border-white/15">
+                                    <!-- Funny dramatic quote injected here -->
+                                </p>
+                                <ul id="spendingWarningList" class="text-xs sm:text-sm text-rose-100 mt-2 space-y-1 font-medium list-disc list-inside">
+                                    <!-- JS Injected Warnings -->
+                                </ul>
+                            </div>
+                        </div>
+                        <button onclick="openBudgetModal()" class="self-start sm:self-center px-3.5 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs whitespace-nowrap transition backdrop-blur-sm">
+                            ⚙️ Sửa hạn mức khổ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3-Tier Smart Spending Radar (Ngày 150k / Tuần 1tr / Tháng 4tr) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Tier 1: Daily Limit (150k) -->
+                    <div id="cardBudgetDay" class="card-premium rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                    <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Chi tiêu Hôm nay
+                                </span>
+                                <span id="badgeBudgetDay" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">An toàn</span>
+                            </div>
+                            <div class="mt-3 flex items-baseline justify-between">
+                                <div class="text-2xl font-display font-extrabold text-slate-900" id="spentTodayText">0 ₫</div>
+                                <div class="text-xs text-slate-400 font-semibold">/ <span id="limitTodayText">150.000 ₫</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-1.5">
+                            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="barBudgetDay" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] font-semibold">
+                                <span id="pctBudgetDay" class="text-slate-500">0% định mức ngày</span>
+                                <span id="remainBudgetDay" class="text-emerald-600">Còn trống 150.000 ₫</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tier 2: Weekly Limit (1,000,000) -->
+                    <div id="cardBudgetWeek" class="card-premium rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                    <i data-lucide="calendar-range" class="w-4 h-4 text-indigo-600"></i> Chi tiêu Tuần này
+                                </span>
+                                <span id="badgeBudgetWeek" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">An toàn</span>
+                            </div>
+                            <div class="mt-3 flex items-baseline justify-between">
+                                <div class="text-2xl font-display font-extrabold text-slate-900" id="spentWeekText">0 ₫</div>
+                                <div class="text-xs text-slate-400 font-semibold">/ <span id="limitWeekText">1.000.000 ₫</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-1.5">
+                            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="barBudgetWeek" class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] font-semibold">
+                                <span id="pctBudgetWeek" class="text-slate-500">0% định mức tuần</span>
+                                <span id="remainBudgetWeek" class="text-emerald-600">Còn trống 1.000.000 ₫</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tier 3: Monthly Limit (4,000,000) -->
+                    <div id="cardBudgetMonth" class="card-premium rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                    <i data-lucide="calendar" class="w-4 h-4 text-violet-600"></i> Chi tiêu Tháng
+                                </span>
+                                <span id="badgeBudgetMonth" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">An toàn</span>
+                            </div>
+                            <div class="mt-3 flex items-baseline justify-between">
+                                <div class="text-2xl font-display font-extrabold text-slate-900" id="spentMonthText">0 ₫</div>
+                                <div class="text-xs text-slate-400 font-semibold">/ <span id="limitMonthText">4.000.000 ₫</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-1.5">
+                            <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="barBudgetMonth" class="h-full bg-violet-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] font-semibold">
+                                <span id="pctBudgetMonth" class="text-slate-500">0% định mức tháng</span>
+                                <span id="remainBudgetMonth" class="text-emerald-600">Còn trống 4.000.000 ₫</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Overview & Category Breakdown -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="lg:col-span-2 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-5 sm:p-6 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-12 -bottom-12 w-56 h-56 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 relative z-10">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">Số dư thực tế trong tháng</span>
+                                <div class="text-2xl sm:text-3xl font-display font-extrabold mt-1 money-mask" id="ctNetBalance">0 ₫</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="month" id="ctMonthFilter" onchange="refreshChiTieuUI()" class="px-3 py-1.5 rounded-xl bg-white/10 border border-white/20 text-white text-xs font-semibold outline-none">
+                                <button onclick="openBudgetModal()" class="px-3 py-1.5 rounded-xl bg-indigo-500/30 hover:bg-indigo-500/50 border border-indigo-400/30 text-white text-xs font-bold transition flex items-center gap-1">
+                                    <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i> Cài hạn mức
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 my-4 pt-4 border-t border-white/10 relative z-10">
+                            <div class="bg-white/5 rounded-2xl p-3.5 border border-white/5">
+                                <div class="text-[11px] text-emerald-300 font-bold flex items-center gap-1">
+                                    <i data-lucide="arrow-down-left" class="w-3.5 h-3.5"></i> TỔNG THU NHẬP THÁNG
+                                </div>
+                                <div class="text-base sm:text-xl font-display font-extrabold text-emerald-400 mt-1 money-mask" id="ctTotalIncome">0 ₫</div>
+                            </div>
+                            <div class="bg-white/5 rounded-2xl p-3.5 border border-white/5">
+                                <div class="text-[11px] text-rose-300 font-bold flex items-center gap-1">
+                                    <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> TỔNG CHI TIÊU THÁNG
+                                </div>
+                                <div class="text-base sm:text-xl font-display font-extrabold text-rose-400 mt-1 money-mask" id="ctTotalExpense">0 ₫</div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300 pt-1 relative z-10">
+                            <span>📌 Ngưỡng cảnh báo: <b>Ngày 150k</b> • <b>Tuần 1tr</b> • <b>Tháng 4tr</b></span>
+                            <span id="budgetAlertText" class="font-bold text-emerald-300">Đang kiểm soát tốt</span>
+                        </div>
+                    </div>
+
+                    <!-- Pie Chart & Category Breakdown Box -->
+                    <div class="card-premium rounded-3xl p-5 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-sm flex items-center gap-2 mb-3">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-600"></i> Biểu đồ tròn Chi tiêu tháng
+                            </h3>
+                            <div class="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center gap-4 my-2">
+                                <div id="expensePieChartWrap" class="relative w-36 h-36 shrink-0 flex items-center justify-center">
+                                    <!-- SVG Donut Chart Injected by JS -->
+                                </div>
+                                <div id="categoryBreakdownList" class="w-full space-y-2 max-h-48 overflow-y-auto pr-1">
+                                    <!-- JS Injected -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-slate-400 pt-3 border-t border-slate-100 mt-2">
+                            💡 Mẹo: Tiền dạy thay khi đánh dấu "Đã thu" sẽ tự động ghi vào mục Thu nhập.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1-Tap Quick Expense Templates (Super fast on Mobile) -->
+                <div class="card-premium rounded-2xl p-3.5 sm:p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> Ghi nhanh 1 chạm (Bấm là lưu ngay trên điện thoại):
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                        <button type="button" onclick="quickOneTapExpense('Ăn uống', 'Cà phê sáng', 25000)" class="shrink-0 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/70 text-xs font-bold transition active:scale-95">☕ Cà phê 25k</button>
+                        <button type="button" onclick="quickOneTapExpense('Ăn uống', 'Ăn sáng / Ăn trưa', 35000)" class="shrink-0 px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200/70 text-xs font-bold transition active:scale-95">🍜 Ăn trưa 35k</button>
+                        <button type="button" onclick="quickOneTapExpense('Ăn uống', 'Trà sữa giải sầu', 30000)" class="shrink-0 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200/70 text-xs font-bold transition active:scale-95">🧋 Trà sữa 30k</button>
+                        <button type="button" onclick="quickOneTapExpense('Xăng xe', 'Đổ xăng đi dạy', 50000)" class="shrink-0 px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200/70 text-xs font-bold transition active:scale-95">⛽ Đổ xăng 50k</button>
+                        <button type="button" onclick="quickOneTapExpense('Mua sắm', 'Mua đồ lặt vặt', 50000)" class="shrink-0 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200/70 text-xs font-bold transition active:scale-95">🛍️ Mua đồ 50k</button>
+                        <button type="button" onclick="quickOneTapExpense('Đám tiệc', 'Đi đám cưới / Quà', 300000)" class="shrink-0 px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200/70 text-xs font-bold transition active:scale-95">💌 Đám tiệc 300k</button>
+                    </div>
+                </div>
+
+                <!-- Add Transaction & History -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    <div class="lg:col-span-1 card-premium rounded-3xl p-5 h-fit" id="cardFormChiTieu">
+                        <h3 class="font-display font-bold text-slate-900 mb-4 flex items-center gap-2 text-base">
+                            <i data-lucide="plus-square" class="w-5 h-5 text-indigo-600"></i> Ghi Thu / Chi mới
+                        </h3>
+                        <form id="formChiTieu" class="space-y-3.5">
+                            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl text-xs font-bold">
+                                <button type="button" id="btnTypeExpense" onclick="setTxType('expense')" class="py-2 rounded-lg bg-white text-rose-600 shadow-sm transition">➖ Khoản Chi</button>
+                                <button type="button" id="btnTypeIncome" onclick="setTxType('income')" class="py-2 rounded-lg text-slate-600 transition">➕ Khoản Thu</button>
+                            </div>
+                            <input type="hidden" id="ctType" value="expense">
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Danh mục</label>
+                                <select id="ctCategory" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:border-indigo-600">
+                                    <option value="Ăn uống">🍜 Ăn uống & Cà phê</option>
+                                    <option value="Xăng xe">⛽ Xăng xe & Đi lại</option>
+                                    <option value="Mua sắm">🛍️ Mua sắm & Sinh hoạt</option>
+                                    <option value="Hóa đơn">⚡ Điện, Nước, Internet</option>
+                                    <option value="Đám tiệc">💌 Đám tiệc & Quà cáp</option>
+                                    <option value="Lương & Dạy thêm">💰 Lương & Tiền dạy thay</option>
+                                    <option value="Khác">📦 Danh mục khác</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Mô tả chi tiết *</label>
+                                <input type="text" id="ctName" required placeholder="VD: Ăn trưa, Đổ xăng, Mua sách..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-indigo-600">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Số tiền (VNĐ) *</label>
+                                    <input type="number" id="ctAmount" required placeholder="50000" step="1000" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-indigo-700 outline-none focus:border-indigo-600">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Ngày *</label>
+                                    <input type="date" id="ctDate" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-indigo-600">
+                                </div>
+                            </div>
+
+                            <!-- Quick Amount Chips -->
+                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                <span class="text-[11px] font-semibold text-slate-400">Chọn nhanh:</span>
+                                <button type="button" onclick="document.getElementById('ctAmount').value = 30000" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-[11px] font-bold transition">30k</button>
+                                <button type="button" onclick="document.getElementById('ctAmount').value = 50000" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-[11px] font-bold transition">50k</button>
+                                <button type="button" onclick="document.getElementById('ctAmount').value = 100000" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-[11px] font-bold transition">100k</button>
+                                <button type="button" onclick="document.getElementById('ctAmount').value = 150000" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-[11px] font-bold transition">150k</button>
+                                <button type="button" onclick="document.getElementById('ctAmount').value = 200000" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-[11px] font-bold transition">200k</button>
+                                <button type="button" onclick="document.getElementById('ctAmount').value = 500000" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 text-[11px] font-bold transition">500k</button>
+                            </div>
+
+                            <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-200 transition active:scale-[0.99]">
+                                Lưu giao dịch & Kiểm tra hạn mức
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-2 card-premium rounded-3xl overflow-hidden flex flex-col">
+                        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-2">
+                            <h4 class="font-display font-bold text-sm text-slate-800">Lịch sử giao dịch trong tháng</h4>
+                            <input type="text" id="ctSearchInput" oninput="refreshChiTieuUI()" placeholder="Tìm khoản thu chi..." class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs outline-none">
+                        </div>
+                        <div class="divide-y divide-slate-100 max-h-[520px] overflow-y-auto" id="listChiTieu">
+                            <!-- JS Injected -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== TAB 2.5: LỊCH TRỐNG & THỜI KHÓA BIỂU ==================== -->
+            <section id="tabTKB" class="tab-content space-y-5">
+                <!-- Form Nhập Nhanh Thời Khóa Biểu -->
+                <div class="card-premium rounded-3xl p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-100">
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                                <i data-lucide="calendar-plus" class="w-5 h-5 text-sky-600"></i> Nhập Lên Thời Khóa Biểu (TKB)
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Điền <b>Tên môn</b>, <b>Trung tâm</b>, <b>Buổi</b> và chọn <b>Online / Offline (Offline cố định 50k/buổi)</b>.</p>
+                        </div>
+                        <button onclick="resetWeeklySchedule()" class="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs transition flex items-center gap-1">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Xóa trắng TKB
+                        </button>
+                    </div>
+
+                    <form id="formAddTKB" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Thứ trong tuần *</label>
+                            <select id="tkbQuickDay" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:border-sky-600 font-semibold">
+                                <option value="0">📅 Thứ 2</option>
+                                <option value="1">📅 Thứ 3</option>
+                                <option value="2">📅 Thứ 4</option>
+                                <option value="3">📅 Thứ 5</option>
+                                <option value="4">📅 Thứ 6</option>
+                                <option value="5">📅 Thứ 7</option>
+                                <option value="6">📅 Chủ Nhật</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Buổi dạy *</label>
+                            <select id="tkbQuickSession" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:border-sky-600 font-semibold">
+                                <option value="0">🌅 Buổi Sáng</option>
+                                <option value="1">☀️ Buổi Chiều</option>
+                                <option value="2">🌙 Buổi Tối</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tên môn học *</label>
+                            <input type="text" id="tkbQuickSubject" required placeholder="VD: Tiếng Anh, Toán 11..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tên trung tâm / Trường *</label>
+                            <input type="text" id="tkbQuickCenter" list="schoolSuggestions" required placeholder="VD: TT Á Châu, Trường THPT..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức dạy *</label>
+                            <select id="tkbQuickType" onchange="onQuickTkbTypeChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:border-sky-600 font-bold text-indigo-700">
+                                <option value="offline">🏫 Offline (50k/buổi)</option>
+                                <option value="online">💻 Online</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Tiền / buổi (VNĐ)</label>
+                            <input type="number" id="tkbQuickRate" value="50000" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-emerald-700 bg-slate-100 outline-none">
+                        </div>
+                        <div>
+                            <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-md shadow-sky-100 transition flex items-center justify-center gap-1.5 active:scale-95">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Thêm TKB
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Bảng hiển thị Thời Khóa Biểu 7 ngày -->
+                <div class="card-premium rounded-3xl p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                        <div>
+                            <h4 class="font-display font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                                <i data-lucide="calendar-days" class="w-5 h-5 text-indigo-600"></i> Lịch Dạy Trong Tuần & Ca Trống (Bấm vào từng ô để sửa/xóa nhanh)
+                            </h4>
+                            <p id="tkbWeeklyStats" class="text-xs font-bold text-sky-700 mt-1">Đang tính tổng buổi dạy trong tuần...</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold">
+                            <span class="flex items-center gap-1.5 text-indigo-700"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> Offline (50k)</span>
+                            <span class="flex items-center gap-1.5 text-sky-700"><span class="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block"></span> Online</span>
+                            <span class="flex items-center gap-1.5 text-emerald-700"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Ca trống</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3" id="tkbGridContainer">
+                        <!-- JS Injected TKB Days -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== TAB 3: GHI CHÚ & CHECKLIST ==================== -->
+            <section id="tabGhiChu" class="tab-content space-y-6">
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm" id="cardFormGhiChu">
+                    <h3 class="font-display font-bold text-slate-900 mb-3 flex items-center gap-2 text-base">
+                        <i data-lucide="file-plus-2" class="w-5 h-5 text-amber-500"></i> Tạo Ghi chú & Checklist công việc
+                    </h3>
+                    <form id="formGhiChu" class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <input type="text" id="gcTitle" required placeholder="Tiêu đề ghi chú (VD: Việc cần làm tuần này)..." class="sm:col-span-2 px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:border-amber-500">
+                            <div class="flex gap-2">
+                                <select id="gcTag" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white outline-none">
+                                    <option value="Giảng dạy">📚 Giảng dạy</option>
+                                    <option value="Họp hành">📅 Họp hành</option>
+                                    <option value="Quan trọng">🔥 Quan trọng</option>
+                                    <option value="Cá nhân">🌿 Cá nhân</option>
+                                </select>
+                                <select id="gcColor" class="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white outline-none">
+                                    <option value="amber">🟡 Vàng</option>
+                                    <option value="indigo">🔵 Xanh</option>
+                                    <option value="emerald">🟢 Lục</option>
+                                    <option value="rose">🔴 Hồng</option>
+                                </select>
+                            </div>
+                        </div>
+                        <textarea id="gcContent" rows="2" placeholder="Ghi chú văn bản hoặc dặn dò..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:border-amber-500 resize-none"></textarea>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Checklist công việc (mỗi dòng 1 đầu việc để tích chọn hoàn thành):</label>
+                            <textarea id="gcChecklistRaw" rows="3" placeholder="Soạn giáo án lớp 11&#10;Chấm bài kiểm tra giữa kỳ&#10;Gửi bảng kê dạy thay cho cô Lan" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs bg-slate-50 outline-none focus:bg-white focus:border-amber-500 resize-none"></textarea>
+                        </div>
+                        <div class="flex items-center justify-between pt-1">
+                            <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
+                                <input type="checkbox" id="gcPinned" class="rounded text-amber-500">
+                                <span>📌 Ghim ghi chú này lên đầu</span>
+                            </label>
+                            <button type="submit" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl shadow-sm transition">
+                                Lưu vào sổ tay
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="listGhiChu">
+                    <!-- JS Injected -->
+                </div>
+            </section>
+
+            <!-- ==================== TAB 4: QUẢN TRỊ ADMIN ==================== -->
+            <section id="tabAdmin" class="tab-content space-y-6">
+                <div class="bg-gradient-to-r from-rose-600 to-orange-600 rounded-2xl p-6 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm shrink-0">
+                            <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-display font-extrabold">Trung Tâm Quản Trị Viên (Admin)</h2>
+                            <p class="text-rose-100 text-xs sm:text-sm mt-0.5">Quản lý tài khoản đồng nghiệp, phát thông báo toàn hệ thống & sao lưu dữ liệu</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="exportAllBackupJSON()" class="px-3.5 py-2 rounded-xl bg-white text-rose-700 font-bold text-xs shadow-sm hover:bg-rose-50 transition flex items-center gap-1.5">
+                            <i data-lucide="download" class="w-4 h-4"></i> Sao lưu (.JSON)
+                        </button>
+                        <label class="px-3.5 py-2 rounded-xl bg-rose-800/60 hover:bg-rose-800 text-white font-bold text-xs cursor-pointer transition flex items-center gap-1.5">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Khôi phục
+                            <input type="file" accept=".json" onchange="importAllBackupJSON(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- System Announcement & Create User -->
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                            <h3 class="font-display font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i data-lucide="megaphone" class="w-4 h-4 text-amber-500"></i> Phát thông báo trên đầu trang
+                            </h3>
+                            <textarea id="adminBannerInput" rows="2" placeholder="Nhập thông báo gửi đến tất cả người dùng..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-rose-500"></textarea>
+                            <div class="flex gap-2">
+                                <button onclick="saveSystemBanner()" class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition">Cập nhật Banner</button>
+                                <button onclick="clearSystemBanner()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-xl transition">Tắt</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                            <h3 class="font-display font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i data-lucide="user-plus" class="w-4 h-4 text-indigo-600"></i> Cấp tài khoản nhanh cho đồng nghiệp
+                            </h3>
+                            <form id="formAdminCreateUser" class="space-y-2.5">
+                                <input type="text" id="admNewName" required placeholder="Tên giáo viên (VD: Thầy Nam)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
+                                <input type="email" id="admNewEmail" required placeholder="Email đăng nhập" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
+                                <input type="text" id="admNewPass" required value="123456" placeholder="Mật khẩu khởi tạo" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
+                                <label class="flex items-center gap-2 text-xs text-slate-600">
+                                    <input type="checkbox" id="admNewIsAdmin" class="rounded text-rose-600">
+                                    <span>Cấp quyền Quản trị viên (Admin)</span>
+                                </label>
+                                <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition">Tạo tài khoản</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- User Management Table -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-display font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i data-lucide="users-round" class="w-4 h-4 text-rose-600"></i> Danh sách tài khoản người dùng
+                            </h3>
+                            <span id="adminUserCount" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">0 tài khoản</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-400 uppercase">
+                                        <th class="py-2.5 px-2">Người dùng</th>
+                                        <th class="py-2.5 px-2">Vai trò</th>
+                                        <th class="py-2.5 px-2">Tổng thu / Tổng chi</th>
+                                        <th class="py-2.5 px-2">Mật khẩu / Trạng thái</th>
+                                        <th class="py-2.5 px-2 text-right">Thao tác Admin</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminUsersTableBody" class="divide-y divide-slate-100">
+                                    <!-- JS Injected -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin: All Users Spending Monitor -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                                <i data-lucide="eye" class="w-5 h-5 text-rose-600"></i> Giám sát Chi tiêu & Thu nhập của mọi người dùng
+                            </h3>
+                            <p class="text-xs text-slate-500">Admin có thể xem toàn bộ lịch sử thu chi của tất cả các thành viên trong hệ thống</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="adminFilterUserSelect" onchange="refreshAdminSpendingMonitor()" class="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 outline-none">
+                                <option value="all">👥 Tất cả người dùng</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="adminAllUsersSummaryCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <!-- JS Injected Summary -->
+                    </div>
+
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="sticky top-0 bg-slate-50">
+                                <tr class="border-b border-slate-200 text-slate-500 uppercase">
+                                    <th class="py-2.5 px-3">Người dùng</th>
+                                    <th class="py-2.5 px-3">Ngày</th>
+                                    <th class="py-2.5 px-3">Loại / Danh mục</th>
+                                    <th class="py-2.5 px-3">Nội dung chi tiết</th>
+                                    <th class="py-2.5 px-3 text-right">Số tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAllSpendingTableBody" class="divide-y divide-slate-100">
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Mobile Quick Action Floating Button (FAB) -->
+        <div class="md:hidden fixed bottom-20 right-4 z-40 flex flex-col items-end gap-2">
+            <div id="fabMenu" class="hidden flex-col items-end gap-2 mb-1">
+                <button onclick="quickJumpAction('tabDayThay', 'cardFormDayThay', 'dtTeacher')" class="px-3.5 py-2 rounded-2xl bg-indigo-600 text-white shadow-lg text-xs font-bold flex items-center gap-2">
+                    <span>➕ Ghi Dạy Thay</span>
+                </button>
+                <button onclick="quickJumpAction('tabChiTieu', 'cardFormChiTieu', 'ctName')" class="px-3.5 py-2 rounded-2xl bg-rose-600 text-white shadow-lg text-xs font-bold flex items-center gap-2">
+                    <span>💸 Ghi Chi Tiêu</span>
+                </button>
+                <button onclick="quickJumpAction('tabGhiChu', 'cardFormGhiChu', 'gcTitle')" class="px-3.5 py-2 rounded-2xl bg-amber-500 text-white shadow-lg text-xs font-bold flex items-center gap-2">
+                    <span>📝 Tạo Ghi Chú</span>
+                </button>
+                <button onclick="openTimerModal(); toggleFabMenu();" class="px-3.5 py-2 rounded-2xl bg-teal-600 text-white shadow-lg text-xs font-bold flex items-center gap-2">
+                    <span>⏱️ Đồng Hồ Tiết Học</span>
+                </button>
+            </div>
+            <button onclick="toggleFabMenu()" id="fabMainBtn" class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-teal-500 text-white shadow-xl shadow-sky-500/30 flex items-center justify-center active:scale-90 transition">
+                <i data-lucide="plus" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Bottom Nav (iOS Style) -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 glass border-t border-slate-200/90 z-40 pb-safe">
+            <div class="flex justify-around items-center px-1 py-1.5">
+                <button onclick="switchTab('tabDayThay')" class="tab-btn active flex-1 py-1.5 flex flex-col items-center gap-1 text-indigo-600" data-target="tabDayThay">
+                    <i data-lucide="calendar-check-2" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-bold">Dạy thay</span>
+                </button>
+                <button onclick="switchTab('tabChiTieu')" class="tab-btn flex-1 py-1.5 flex flex-col items-center gap-1 text-slate-400" data-target="tabChiTieu">
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-bold">Chi tiêu</span>
+                </button>
+                <button onclick="switchTab('tabTKB')" class="tab-btn flex-1 py-1.5 flex flex-col items-center gap-1 text-slate-400" data-target="tabTKB">
+                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-bold">Lịch trống</span>
+                </button>
+                <button onclick="switchTab('tabGhiChu')" class="tab-btn flex-1 py-1.5 flex flex-col items-center gap-1 text-slate-400" data-target="tabGhiChu">
+                    <i data-lucide="check-square" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-bold">Ghi chú</span>
+                </button>
+                <button onclick="switchTab('tabAdmin')" id="navAdminMobile" class="tab-btn hidden flex-1 py-1.5 flex flex-col items-center gap-1 text-rose-500" data-target="tabAdmin">
+                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                    <span class="text-[10px] font-bold">Admin</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- MODAL 5: ĐỒNG HỒ BẤM GIỜ TIẾT HỌC (45 PHÚT / 15 PHÚT) -->
+    <div id="timerModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4 text-center">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i data-lucide="timer" class="w-5 h-5 text-amber-500"></i> Đồng Hồ Canh Tiết Học
+                </h3>
+                <button onclick="closeTimerModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="py-4">
+                <div id="classTimerDisplay" class="text-5xl font-display font-extrabold text-slate-900 tracking-wider">45:00</div>
+                <p id="classTimerStatus" class="text-xs text-slate-500 mt-2">Chọn thời gian để đếm ngược trên lớp</p>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-xs font-bold">
+                <button onclick="setClassTimer(45)" class="py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600">Tiết 45p</button>
+                <button onclick="setClassTimer(15)" class="py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600">Kiểm tra 15p</button>
+                <button onclick="setClassTimer(5)" class="py-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600">Ra chơi 5p</button>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="toggleClassTimer()" id="btnStartTimer" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-100">Bắt đầu chạy</button>
+                <button onclick="resetClassTimer()" class="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Đặt lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: CẬP NHẬT Ô THỜI KHÓA BIỂU (INLINE MODAL) -->
+    <div id="tkbEditModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 id="tkbModalTitle" class="font-display font-bold text-slate-900 text-base">Cập nhật ca dạy TKB</h3>
+                <button onclick="closeTkbModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="space-y-3">
+                <input type="hidden" id="tkbEditKey">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Thứ</label>
+                        <select id="tkbModalDay" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 outline-none">
+                            <option value="0">Thứ 2</option>
+                            <option value="1">Thứ 3</option>
+                            <option value="2">Thứ 4</option>
+                            <option value="3">Thứ 5</option>
+                            <option value="4">Thứ 6</option>
+                            <option value="5">Thứ 7</option>
+                            <option value="6">Chủ Nhật</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Buổi dạy</label>
+                        <select id="tkbModalSession" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50 outline-none">
+                            <option value="0">🌅 Buổi Sáng</option>
+                            <option value="1">☀️ Buổi Chiều</option>
+                            <option value="2">🌙 Buổi Tối</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Tên môn học *</label>
+                    <input type="text" id="tkbEditSubject" placeholder="VD: Tiếng Anh giao tiếp, Toán 12..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Tên trung tâm / Trường *</label>
+                    <input type="text" id="tkbEditCenter" list="schoolSuggestions" placeholder="VD: Trung tâm VUS, THPT..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức dạy *</label>
+                        <select id="tkbEditType" onchange="onModalTkbTypeChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none focus:border-sky-600">
+                            <option value="offline">🏫 Offline (Cố định 50k)</option>
+                            <option value="online">💻 Online</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tiền / buổi (VNĐ)</label>
+                        <input type="number" id="tkbEditRate" value="50000" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-emerald-700 bg-slate-100 outline-none">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="clearTkbSlot()" class="px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition">Đặt là Ca Trống</button>
+                    <button type="button" onclick="saveTkbSlot()" class="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-md shadow-sky-100 transition">Lưu lên TKB</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 1: BẢNG KÊ TIN NHẮN ZALO (ĐÃ BỎ MÃ QR) -->
+    <div id="qrModal" class="hidden fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 my-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i data-lucide="message-square-text" class="w-5 h-5 text-indigo-600"></i> Bảng Kê Dạy Thay Gửi Zalo
+                </h3>
+                <button onclick="closeQrModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-800">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-slate-700">Nội dung tin nhắn gửi Zalo / Messenger:</label>
+                <textarea id="zaloSummaryText" rows="9" class="w-full p-3.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 outline-none resize-none leading-relaxed"></textarea>
+                <button onclick="copyTextareaContent('zaloSummaryText')" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-100 transition">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Sao chép tin nhắn gửi Zalo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ĐỔI MẬT KHẨU CÁ NHÂN -->
+    <div id="passwordModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-display font-bold text-slate-900 text-base">Đổi mật khẩu tài khoản</h3>
+                <button onclick="closePasswordModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form id="formChangePass" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu mới *</label>
+                    <input type="password" id="newPassInput" required minlength="4" placeholder="Nhập mật khẩu mới..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none">
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm">Cập nhật mật khẩu</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: CÀI ĐẶT HẠN MỨC CHI TIÊU 3 TẦNG -->
+    <div id="budgetModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i data-lucide="bell-ring" class="w-5 h-5 text-rose-600"></i> Cài đặt Ngưỡng Cảnh Báo Chi Tiêu
+                </h3>
+                <button onclick="closeBudgetModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form id="formBudgetLimits" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">☀️ Định mức tối đa 1 Ngày (VNĐ)</label>
+                    <input type="number" id="limitDayInput" required step="10000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">📅 Định mức tối đa 1 Tuần (VNĐ)</label>
+                    <input type="number" id="limitWeekInput" required step="50000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">🗓️ Định mức tối đa 1 Tháng (VNĐ)</label>
+                    <input type="number" id="limitMonthInput" required step="100000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="resetDefaultBudgetLimits()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Mặc định (150k / 1tr / 4tr)</button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-100 transition">Lưu định mức</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPT (Smart Hybrid Cloud + LocalStorage Engine) -->
+    <script>
+        // ============================================================================
+        // 1. SMART STORAGE ENGINE (100% GitHub Pages Compatible + Multi-User Support)
+        // ============================================================================
+        const STORAGE_KEYS = {
+            USERS: 'sotay_gv_pro_users_v3',
+            SESSION: 'sotay_gv_pro_session_v3',
+            REMEMBERED: 'sotay_gv_pro_remembered_v3',
+            BANNER: 'sotay_gv_pro_banner_v3',
+            CUSTOM_LOGO: 'sotay_gv_pro_custom_logo_v3'
+        };
+
+        // Bộ câu thoại cảnh báo chi tiêu hài hước, than nghèo kể khổ khi vượt 150k
+        const FUNNY_POOR_WARNINGS = [
+            "😭 Á cứu tôi! Mới tiêu vượt 150k rồi, tầm này chỉ có hít khí trời quang hợp qua ngày thôi!",
+            "🍜 Ví tiền đang hấp hối! Xin hãy buông tha các app đặt đồ ăn, mì tôm Hảo Hảo đang vẫy gọi bạn!",
+            "💸 Lương giáo viên mỏng như tờ giấy nháp mà tiêu pha như chủ tịch tập đoàn vậy trời!",
+            "🥺 Một phút bốc đồng, cả tuần ăn mì không người lái! Dừng tay lại ngay đồng chí ơi!",
+            "🚑 Alo cấp cứu tài chính! Cứ đà tiêu xài này thì đi dạy thay 80 tiết nữa cũng không cứu nổi cái ví!",
+            "🍂 Nhìn số tiền vừa vơi đi mà lòng đau như cắt, nước mắt đầm đìa... Từ mai xin thề ăn chay tịnh tâm!",
+            "📉 Tài chính bất lực, giáo viên bất ổn! Đề nghị khóa app ngân hàng, đập ống heo hoặc nhịn trà sữa ngay!"
+        ];
+
+        function getRandomPoorQuote() {
+            return FUNNY_POOR_WARNINGS[Math.floor(Math.random() * FUNNY_POOR_WARNINGS.length)];
+        }
+
+        // Cho phép người dùng chọn ảnh thật (ảnh 2) từ máy để lưu làm Logo cố định trên nền xanh
+        window.handleLogoUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const size = 200;
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    const grad = ctx.createLinearGradient(0, 0, size, size);
+                    grad.addColorStop(0, '#0ea5e9');
+                    grad.addColorStop(1, '#14b8a6');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, size, size);
+
+                    const minDim = Math.min(img.width, img.height);
+                    const sx = (img.width - minDim) / 2;
+                    const sy = (img.height - minDim) / 2;
+                    ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    localStorage.setItem(STORAGE_KEYS.CUSTOM_LOGO, dataUrl);
+                    applyCustomLogo();
+                    showToast('Đã cập nhật ảnh Logo màu xanh cực xinh! 💙');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function applyCustomLogo() {
+            const savedLogo = localStorage.getItem(STORAGE_KEYS.CUSTOM_LOGO);
+            const authImg = document.getElementById('customAuthLogoImg');
+            const authSvg = document.getElementById('defaultAuthLogoSvg');
+            const headerImg = document.getElementById('customHeaderLogoImg');
+            const headerSvg = document.getElementById('defaultHeaderLogoSvg');
+
+            if (savedLogo) {
+                if (authImg && authSvg) {
+                    authImg.src = savedLogo;
+                    authImg.classList.remove('hidden');
+                    authSvg.classList.add('hidden');
+                }
+                if (headerImg && headerSvg) {
+                    headerImg.src = savedLogo;
+                    headerImg.classList.remove('hidden');
+                    headerSvg.classList.add('hidden');
+                }
+            }
+        }
+
+        let isLoginMode = true;
+        let currentUser = null;
+        let isPrivacyMasked = false;
+
+        // Data Caches for Current User
+        let dayThayList = [];
+        let chiTieuList = [];
+        let ghiChuList = [];
+        let tkbMap = {};
+        let userSettings = {
+            dailyLimit: 150000,
+            weeklyLimit: 1000000,
+            monthlyLimit: 4000000,
+            bankId: 'VCB',
+            bankAccNo: '',
+            bankAccName: ''
+        };
+
+        // Ensure default Admin exists so user can test immediately on github.io
+        function initSystemUsers() {
+            let users = [];
+            try {
+                users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+            } catch (e) { users = []; }
+
+            const hasAdmin = users.some(u => u.email.toLowerCase() === 'admin@gmail.com');
+            if (!hasAdmin) {
+                users.push({
+                    uid: 'admin-master-uid',
+                    name: 'Quản Trị Viên (Admin)',
+                    email: 'admin@gmail.com',
+                    password: 'admin123',
+                    role: 'admin',
+                    locked: false,
+                    createdAt: Date.now()
+                });
+                localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+            }
+            return users;
+        }
+
+        function getUsers() {
+            return initSystemUsers();
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+        }
+
+        function getUserStorageKey(uid, collection) {
+            return `sotay_gv_data_${uid}_${collection}`;
+        }
+
+        function loadUserData(uid) {
+            try {
+                dayThayList = JSON.parse(localStorage.getItem(getUserStorageKey(uid, 'daythay')) || '[]');
+                chiTieuList = JSON.parse(localStorage.getItem(getUserStorageKey(uid, 'chitieu')) || '[]');
+                ghiChuList = JSON.parse(localStorage.getItem(getUserStorageKey(uid, 'ghichu')) || '[]');
+                tkbMap = JSON.parse(localStorage.getItem(getUserStorageKey(uid, 'tkb')) || '{}');
+                const savedCfg = JSON.parse(localStorage.getItem(getUserStorageKey(uid, 'settings')) || '{}');
+                userSettings = {
+                    dailyLimit: 150000,
+                    weeklyLimit: 1000000,
+                    monthlyLimit: 4000000,
+                    bankId: 'VCB',
+                    bankAccNo: '',
+                    bankAccName: '',
+                    ...savedCfg
+                };
+            } catch (e) {
+                console.error('Load user data error:', e);
+            }
+        }
+
+        function saveUserCollection(collectionName, dataArray) {
+            if (!currentUser) return;
+            localStorage.setItem(getUserStorageKey(currentUser.uid, collectionName), JSON.stringify(dataArray));
+        }
+
+        function saveUserSettings() {
+            if (!currentUser) return;
+            localStorage.setItem(getUserStorageKey(currentUser.uid, 'settings'), JSON.stringify(userSettings));
+        }
+
+        // ============================================================================
+        // 2. UI HELPERS & PRIVACY MASK
+        // ============================================================================
+        function showToast(msg, isError = false) {
+            const box = document.getElementById('toastContainer');
+            const el = document.createElement('div');
+            el.className = `${isError ? 'bg-rose-600' : 'bg-slate-900'} text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs sm:text-sm font-bold flex items-center gap-2 pointer-events-auto transition-all duration-300`;
+            el.innerHTML = `<span>${isError ? '⚠️' : '✨'}</span><span>${msg}</span>`;
+            box.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-8px)';
+                setTimeout(() => el.remove(), 250);
+            }, 3200);
+        }
+
+        function formatRawVND(num) {
+            return new Intl.NumberFormat('vi-VN').format(Number(num) || 0) + ' ₫';
+        }
+
+        function formatVND(num) {
+            if (isPrivacyMasked) return '***.*** ₫';
+            return formatRawVND(num);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
+        }
+
+        function escapeHtml(str = '') {
+            return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+
+        window.togglePassInput = (id) => {
+            const inp = document.getElementById(id);
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+        };
+
+        window.togglePrivacyMask = () => {
+            isPrivacyMasked = !isPrivacyMasked;
+            const icon = document.getElementById('privacyIcon');
+            const label = document.getElementById('privacyLabel');
+            if (isPrivacyMasked) {
+                icon.setAttribute('data-lucide', 'eye-off');
+                if (label) label.textContent = 'Đang ẩn tiền';
+                showToast('Đã bật chế độ ẩn số tiền nhạy cảm 🙈');
+            } else {
+                icon.setAttribute('data-lucide', 'eye');
+                if (label) label.textContent = 'Hiện số tiền';
+                showToast('Đã hiển thị lại số tiền 👁️');
+            }
+            refreshAllUI();
+        };
+
+        // ============================================================================
+        // 3. AUTHENTICATION & REMEMBER ACCOUNT ENGINE
+        // ============================================================================
+        window.toggleAuthMode = () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('nameFieldWrap').classList.toggle('hidden', isLoginMode);
+            document.getElementById('authTitle').innerHTML = isLoginMode
+                ? 'GIÁO VIÊN BẤT ỔN<br><span class="text-sky-600">TÀI CHÍNH BẤT LỰC</span>'
+                : 'ĐĂNG KÝ TÀI KHOẢN<br><span class="text-sky-600">GIÁO VIÊN BẤT ỔN</span>';
+            document.getElementById('authSubmitBtn').textContent = isLoginMode ? 'Đăng nhập vào hệ thống' : 'Tạo tài khoản ngay';
+            document.getElementById('authToggleText').textContent = isLoginMode ? 'Chưa có tài khoản?' : 'Đã có tài khoản?';
+            document.getElementById('authToggleBtn').textContent = isLoginMode ? 'Đăng ký ngay' : 'Đăng nhập';
+        };
+
+        function saveRememberedAccount(email, password) {
+            try {
+                let list = JSON.parse(localStorage.getItem(STORAGE_KEYS.REMEMBERED) || '[]');
+                list = list.filter(item => item.email.toLowerCase() !== email.toLowerCase());
+                list.unshift({ email, password });
+                localStorage.setItem(STORAGE_KEYS.REMEMBERED, JSON.stringify(list.slice(0, 5)));
+            } catch (e) {}
+        }
+
+        function renderRememberedAccounts() {
+            try {
+                const list = JSON.parse(localStorage.getItem(STORAGE_KEYS.REMEMBERED) || '[]');
+                const box = document.getElementById('savedAccountsBox');
+                const container = document.getElementById('savedAccountsList');
+                if (!box || !container) return;
+                if (!list.length) {
+                    box.classList.add('hidden');
+                    return;
+                }
+                box.classList.remove('hidden');
+                container.innerHTML = list.map(acc => `
+                    <button type="button" onclick="quickFillSavedAccount('${escapeHtml(acc.email)}', '${escapeHtml(acc.password)}')"
+                        class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold flex items-center gap-1 transition">
+                        <span>👤 ${escapeHtml(acc.email)}</span>
+                    </button>
+                `).join('');
+            } catch (e) {}
+        }
+
+        window.quickFillSavedAccount = (email, password) => {
+            if (!isLoginMode) toggleAuthMode();
+            document.getElementById('authEmail').value = email;
+            document.getElementById('authPassword').value = password;
+            showToast('Đã điền tài khoản đã lưu!');
+        };
+
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value.trim().toLowerCase();
+            const password = document.getElementById('authPassword').value;
+            const name = document.getElementById('authName').value.trim();
+            const remember = document.getElementById('rememberMe').checked;
+
+            const users = getUsers();
+
+            if (isLoginMode) {
+                const found = users.find(u => u.email.toLowerCase() === email && u.password === password);
+                if (!found) {
+                    showToast('Email hoặc mật khẩu không chính xác!', true);
+                    return;
+                }
+                if (found.locked) {
+                    showToast('Tài khoản này đã bị Admin tạm khóa!', true);
+                    return;
+                }
+                if (remember) saveRememberedAccount(email, password);
+                loginSuccess(found);
+            } else {
+                if (users.some(u => u.email.toLowerCase() === email)) {
+                    showToast('Email này đã được đăng ký! Vui lòng đăng nhập.', true);
+                    return;
+                }
+                const isAdminEmail = email === 'admin@gmail.com';
+                const newUser = {
+                    uid: 'user-' + Date.now(),
+                    name: name || email.split('@')[0],
+                    email,
+                    password,
+                    role: isAdminEmail ? 'admin' : 'member',
+                    locked: false,
+                    createdAt: Date.now()
+                };
+                users.push(newUser);
+                saveUsers(users);
+                if (remember) saveRememberedAccount(email, password);
+                showToast('Đăng ký tài khoản thành công!');
+                loginSuccess(newUser);
+            }
+        });
+
+        function loginSuccess(userObj, showWelcome = true) {
+            currentUser = userObj;
+            localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify({ uid: userObj.uid, email: userObj.email }));
+
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+
+            document.getElementById('userEmailDisplay').textContent = userObj.email;
+            document.getElementById('headerGreeting').textContent = `Xin chào, ${userObj.name || userObj.email}!`;
+
+            const isAdmin = userObj.role === 'admin' || userObj.email.toLowerCase() === 'admin@gmail.com';
+            document.getElementById('navAdminDesktop').classList.toggle('hidden', !isAdmin);
+            document.getElementById('navAdminDesktop').classList.toggle('flex', isAdmin);
+            document.getElementById('navAdminMobile').classList.toggle('hidden', !isAdmin);
+
+            loadUserData(userObj.uid);
+            loadSystemBanner();
+            initDefaultDates();
+            refreshAllUI();
+            if (showWelcome) showToast(`Chào mừng ${userObj.name || userObj.email}!`);
+        }
+
+        window.handleLogout = () => {
+            currentUser = null;
+            localStorage.removeItem(STORAGE_KEYS.SESSION);
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+            renderRememberedAccounts();
+            switchTab('tabDayThay');
+            showToast('Đã đăng xuất an toàn');
+        };
+
+        // ============================================================================
+        // 4. TAB 1: SỔ DẠY THAY + CALENDAR + EXCEL
+        // ============================================================================
+        window.setSubMode = (mode) => {
+            document.getElementById('dtMode').value = mode;
+            const mBtn = document.getElementById('modeMoneyBtn');
+            const sBtn = document.getElementById('modeSwapBtn');
+            const rateWrap = document.getElementById('rateInputWrap');
+            const totalWrap = document.getElementById('totalMoneyWrap');
+            const quickBar = document.getElementById('quickPriceBar');
+
+            if (mode === 'money') {
+                mBtn.className = 'px-3 py-1.5 rounded-lg bg-white text-indigo-600 shadow-sm transition';
+                sBtn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+                rateWrap.classList.remove('opacity-40', 'pointer-events-none');
+                totalWrap.classList.remove('opacity-40', 'pointer-events-none');
+                quickBar.classList.remove('hidden');
+                autoCalcSubTotal();
+            } else {
+                sBtn.className = 'px-3 py-1.5 rounded-lg bg-white text-indigo-600 shadow-sm transition';
+                mBtn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+                rateWrap.classList.add('opacity-40', 'pointer-events-none');
+                totalWrap.classList.add('opacity-40', 'pointer-events-none');
+                quickBar.classList.add('hidden');
+                document.getElementById('dtMoney').value = 0;
+            }
+        };
+
+        window.autoCalcSubTotal = () => {
+            if (document.getElementById('dtMode').value === 'swap') return;
+            const p = Number(document.getElementById('dtPeriods').value) || 0;
+            const r = Number(document.getElementById('dtRate').value) || 0;
+            document.getElementById('dtMoney').value = p * r;
+        };
+
+        window.applyQuickRate = (rate) => {
+            document.getElementById('dtRate').value = rate;
+            autoCalcSubTotal();
+        };
+
+        window.applyFlatTotal = (total) => {
+            document.getElementById('dtMoney').value = total;
+        };
+
+        document.getElementById('formDayThay').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const mode = document.getElementById('dtMode').value;
+            const record = {
+                id: 'dt-' + Date.now(),
+                mode: mode,
+                date: document.getElementById('dtDate').value,
+                session: document.getElementById('dtSession').value,
+                teacher: document.getElementById('dtTeacher').value.trim(),
+                school: document.getElementById('dtSchool').value.trim(),
+                subject: document.getElementById('dtSubject').value.trim(),
+                periods: Number(document.getElementById('dtPeriods').value) || 1,
+                money: mode === 'swap' ? 0 : (Number(document.getElementById('dtMoney').value) || 0),
+                syncIncome: document.getElementById('dtSyncIncome').checked,
+                paid: false,
+                createdAt: Date.now()
+            };
+
+            dayThayList.unshift(record);
+            saveUserCollection('daythay', dayThayList);
+
+            document.getElementById('dtTeacher').value = '';
+            document.getElementById('dtSubject').value = '';
+            showToast('Đã lưu buổi dạy thay thành công!');
+            refreshDayThayUI();
+        });
+
+        window.toggleDayThayPaid = (id) => {
+            const item = dayThayList.find(x => x.id === id);
+            if (!item) return;
+            item.paid = !item.paid;
+            saveUserCollection('daythay', dayThayList);
+
+            if (item.paid && item.mode !== 'swap' && item.money > 0 && item.syncIncome) {
+                const alreadyLogged = chiTieuList.some(tx => tx.linkedSubId === item.id);
+                if (!alreadyLogged) {
+                    chiTieuList.unshift({
+                        id: 'ct-auto-' + Date.now(),
+                        linkedSubId: item.id,
+                        type: 'income',
+                        category: 'Lương & Dạy thêm',
+                        name: `Thu tiền dạy thay ${item.teacher} (${formatDate(item.date)})`,
+                        amount: Number(item.money),
+                        date: new Date().toISOString().split('T')[0],
+                        createdAt: Date.now()
+                    });
+                    saveUserCollection('chitieu', chiTieuList);
+                    refreshChiTieuUI();
+                    showToast(`Đã thu & tự động cộng +${formatRawVND(item.money)} vào Sổ Chi Tiêu!`);
+                    refreshDayThayUI();
+                    return;
+                }
+            }
+
+            showToast(item.paid ? 'Đã đánh dấu hoàn tất!' : 'Đã chuyển về chưa thanh toán');
+            refreshDayThayUI();
+        };
+
+        window.markAllTeacherPaid = (teacherName) => {
+            let count = 0;
+            let addedIncome = 0;
+            dayThayList.forEach(item => {
+                if (item.teacher === teacherName && !item.paid) {
+                    item.paid = true;
+                    count++;
+                    if (item.mode !== 'swap' && item.money > 0 && item.syncIncome) {
+                        const alreadyLogged = chiTieuList.some(tx => tx.linkedSubId === item.id);
+                        if (!alreadyLogged) {
+                            chiTieuList.unshift({
+                                id: 'ct-auto-' + Date.now() + '-' + count,
+                                linkedSubId: item.id,
+                                type: 'income',
+                                category: 'Lương & Dạy thêm',
+                                name: `Thu tiền dạy thay ${item.teacher} (${formatDate(item.date)})`,
+                                amount: Number(item.money),
+                                date: new Date().toISOString().split('T')[0],
+                                createdAt: Date.now()
+                            });
+                            addedIncome += Number(item.money);
+                        }
+                    }
+                }
+            });
+            saveUserCollection('daythay', dayThayList);
+            if (addedIncome > 0) {
+                saveUserCollection('chitieu', chiTieuList);
+                refreshChiTieuUI();
+            }
+            refreshDayThayUI();
+            showToast(`Đã thanh toán ${count} buổi của ${teacherName}!`);
+        };
+
+        window.deleteDayThay = (id) => {
+            dayThayList = dayThayList.filter(x => x.id !== id);
+            saveUserCollection('daythay', dayThayList);
+            refreshDayThayUI();
+            showToast('Đã xóa bản ghi dạy thay');
+        };
+
+        window.addToGoogleCalendar = (id) => {
+            const item = dayThayList.find(x => x.id === id);
+            if (!item) return;
+            const dateCompact = (item.date || '').replace(/-/g, '');
+            let startHour = '070000', endHour = '110000';
+            if (item.session === 'Chiều') { startHour = '130000'; endHour = '170000'; }
+            if (item.session === 'Tối') { startHour = '180000'; endHour = '210000'; }
+
+            const title = encodeURIComponent(`Dạy thay ${item.teacher} (${item.periods} tiết)`);
+            const details = encodeURIComponent(`Lớp/Môn: ${item.subject || 'Chưa ghi'}\nTrường: ${item.school || ''}`);
+            const location = encodeURIComponent(item.school || '');
+            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateCompact}T${startHour}/${dateCompact}T${endHour}&details=${details}&location=${location}`;
+            window.open(url, '_blank');
+        };
+
+        window.openQrModal = (teacherName) => {
+            const unpaidList = dayThayList.filter(x => x.teacher === teacherName && !x.paid);
+            if (!unpaidList.length) {
+                showToast('Giáo viên này không còn buổi nào chưa thanh toán!');
+                return;
+            }
+
+            let totalMoney = 0;
+            let totalPeriods = 0;
+            const lines = unpaidList.map((item, idx) => {
+                totalMoney += Number(item.money) || 0;
+                totalPeriods += Number(item.periods) || 0;
+                const priceTag = item.mode === 'swap' ? '(Đổi tiết)' : formatRawVND(item.money);
+                return `${idx + 1}. Ngày ${formatDate(item.date)} (${item.session}) - ${item.periods} tiết ${item.subject ? '[' + item.subject + ']' : ''}: ${priceTag}`;
+            });
+
+            const message = `Chào ${teacherName}, mình gửi bảng kê các buổi mình đã dạy thay cho bạn nhé:\n\n` +
+                lines.join('\n') +
+                `\n----------------------\n📌 Tổng cộng: ${unpaidList.length} buổi (${totalPeriods} tiết)` +
+                (totalMoney > 0 ? `\n💰 Tổng số tiền: ${formatRawVND(totalMoney)}` : '') +
+                `\nCảm ơn ${teacherName} nhiều nha! ❤️`;
+
+            document.getElementById('zaloSummaryText').value = message;
+            document.getElementById('qrModal').classList.remove('hidden');
+        };
+
+        window.closeQrModal = () => document.getElementById('qrModal').classList.add('hidden');
+
+        window.copyTextareaContent = (id) => {
+            const area = document.getElementById(id);
+            area.select();
+            document.execCommand('copy');
+            showToast('Đã sao chép nội dung để dán vào Zalo!');
+        };
+
+        window.exportDayThayCSV = () => {
+            if (!dayThayList.length) {
+                showToast('Chưa có dữ liệu dạy thay để xuất file!', true);
+                return;
+            }
+            const headers = ['Ngày dạy', 'Buổi', 'Giáo viên nhờ', 'Trường', 'Lớp/Phòng/Môn', 'Số tiết', 'Hình thức', 'Thành tiền', 'Trạng thái'];
+            const rows = dayThayList.map(d => [
+                d.date, d.session, `"${(d.teacher || '').replace(/"/g, '""')}"`,
+                `"${(d.school || '').replace(/"/g, '""')}"`, `"${(d.subject || '').replace(/"/g, '""')}"`,
+                d.periods, d.mode === 'swap' ? 'Đổi tiết' : 'Tính tiền', d.money,
+                d.paid ? 'Đã xong' : 'Chưa xong'
+            ]);
+            const csv = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `So_Day_Thay_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            showToast('Đã tải xuống file Excel (.CSV)');
+        };
+
+        function refreshDayThayUI() {
+            let unpaidMoney = 0, unpaidCount = 0;
+            let paidMoney = 0, paidCount = 0;
+            let swapUnpaidPeriods = 0, totalPeriods = 0;
+            const teacherSet = new Set();
+            const schoolSet = new Set();
+            const teacherGroup = {};
+
+            dayThayList.forEach(item => {
+                const p = Number(item.periods) || 0;
+                const m = Number(item.money) || 0;
+                totalPeriods += p;
+                if (item.teacher) teacherSet.add(item.teacher);
+                if (item.school) schoolSet.add(item.school);
+
+                if (item.mode === 'swap') {
+                    if (!item.paid) swapUnpaidPeriods += p;
+                } else {
+                    if (item.paid) { paidMoney += m; paidCount++; }
+                    else { unpaidMoney += m; unpaidCount++; }
+                }
+
+                const tName = item.teacher || 'Chưa rõ tên';
+                if (!teacherGroup[tName]) {
+                    teacherGroup[tName] = { unpaidMoney: 0, unpaidPeriods: 0, unpaidSessions: 0, swapPeriods: 0, totalSessions: 0 };
+                }
+                teacherGroup[tName].totalSessions++;
+                if (!item.paid) {
+                    teacherGroup[tName].unpaidSessions++;
+                    teacherGroup[tName].unpaidPeriods += p;
+                    if (item.mode === 'swap') teacherGroup[tName].swapPeriods += p;
+                    else teacherGroup[tName].unpaidMoney += m;
+                }
+            });
+
+            document.getElementById('kpiUnpaidMoney').textContent = formatVND(unpaidMoney);
+            document.getElementById('kpiUnpaidSub').textContent = `${unpaidCount} buổi chưa thu`;
+            document.getElementById('kpiPaidMoney').textContent = formatVND(paidMoney);
+            document.getElementById('kpiPaidSub').textContent = `${paidCount} buổi đã thu`;
+            document.getElementById('kpiSwapPeriods').textContent = `${swapUnpaidPeriods} tiết`;
+            document.getElementById('kpiTotalPeriods').textContent = `${totalPeriods} tiết`;
+            document.getElementById('kpiTotalTeachers').textContent = `${teacherSet.size} giáo viên`;
+
+            document.getElementById('teacherSuggestions').innerHTML = [...teacherSet].map(t => `<option value="${escapeHtml(t)}">`).join('');
+            document.getElementById('schoolSuggestions').innerHTML = [...schoolSet].map(s => `<option value="${escapeHtml(s)}">`).join('');
+
+            const summaryGrid = document.getElementById('teacherSummaryGrid');
+            const tKeys = Object.keys(teacherGroup);
+            if (!tKeys.length) {
+                summaryGrid.innerHTML = `<div class="col-span-full text-center py-6 text-slate-400 text-xs">Chưa có dữ liệu giáo viên nhờ dạy thay.</div>`;
+            } else {
+                summaryGrid.innerHTML = tKeys.map(tName => {
+                    const g = teacherGroup[tName];
+                    const hasDebt = g.unpaidSessions > 0;
+                    return `
+                        <div class="p-4 rounded-2xl border ${hasDebt ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50/50'} flex flex-col justify-between gap-3">
+                            <div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <h4 class="font-display font-bold text-slate-900 text-sm">${escapeHtml(tName)}</h4>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${hasDebt ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700'}">
+                                        ${hasDebt ? `Còn ${g.unpaidSessions} buổi` : 'Đã tất toán'}
+                                    </span>
+                                </div>
+                                <div class="mt-2 text-lg font-display font-extrabold ${hasDebt ? 'text-amber-600' : 'text-emerald-600'}">
+                                    ${formatVND(g.unpaidMoney)}
+                                    ${g.swapPeriods > 0 ? `<span class="text-xs font-bold text-indigo-600 ml-1">(+${g.swapPeriods} tiết đổi)</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 pt-2 border-t border-slate-200/60">
+                                <button onclick="openQrModal('${escapeHtml(tName)}')" class="flex-1 py-1.5 px-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] flex items-center justify-center gap-1 transition">
+                                    <i data-lucide="message-square-text" class="w-3.5 h-3.5"></i> Tạo bảng kê Zalo
+                                </button>
+                                ${hasDebt ? `
+                                <button onclick="markAllTeacherPaid('${escapeHtml(tName)}')" class="py-1.5 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition" title="Đánh dấu đã thu hết">
+                                    Thu hết
+                                </button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Overdue Debt Reminder Check (> 7 days unpaid)
+            const overdueBanner = document.getElementById('overdueDebtBanner');
+            const overdueText = document.getElementById('overdueDebtText');
+            if (overdueBanner && overdueText) {
+                const nowMs = Date.now();
+                const overdueItems = dayThayList.filter(item => {
+                    if (item.paid || !item.date) return false;
+                    const diffDays = (nowMs - new Date(item.date + 'T00:00:00').getTime()) / (1000 * 3600 * 24);
+                    return diffDays >= 7;
+                });
+                if (overdueItems.length > 0) {
+                    const names = [...new Set(overdueItems.map(i => i.teacher))].join(', ');
+                    overdueText.textContent = `Có ${overdueItems.length} buổi dạy của (${names}) đã qua hơn 1 tuần chưa thanh toán/trả tiết. Bấm tạo bảng kê gửi Zalo nhắc nhẹ ngay!`;
+                    overdueBanner.classList.remove('hidden');
+                } else {
+                    overdueBanner.classList.add('hidden');
+                }
+            }
+
+            const q = (document.getElementById('filterDtSearch').value || '').toLowerCase();
+            const statusFilter = document.getElementById('filterDtStatus').value;
+            const filtered = dayThayList.filter(item => {
+                if (statusFilter === 'unpaid' && item.paid) return false;
+                if (statusFilter === 'paid' && !item.paid) return false;
+                if (q) {
+                    const hay = `${item.teacher} ${item.school} ${item.subject} ${item.date}`.toLowerCase();
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            const listEl = document.getElementById('listDayThay');
+            if (!filtered.length) {
+                listEl.innerHTML = `<div class="text-center py-10 bg-white rounded-2xl border border-slate-200 text-slate-400 text-sm">Không có buổi dạy thay nào khớp bộ lọc.</div>`;
+            } else {
+                listEl.innerHTML = filtered.map(item => `
+                    <div class="bg-white p-4 rounded-2xl border ${item.paid ? 'border-slate-200 opacity-75' : 'border-indigo-200/80 shadow-sm'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="space-y-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700">${formatDate(item.date)} • ${escapeHtml(item.session)}</span>
+                                <span class="font-display font-bold text-slate-900 text-sm">GV: ${escapeHtml(item.teacher)}</span>
+                                ${item.school ? `<span class="text-xs text-slate-500">• 🏫 ${escapeHtml(item.school)}</span>` : ''}
+                                ${item.mode === 'swap' ? `<span class="px-2 py-0.5 rounded-md bg-violet-100 text-violet-700 text-[10px] font-bold">🔄 Đổi tiết</span>` : ''}
+                            </div>
+                            <div class="text-xs text-slate-600">
+                                📖 <b>${item.periods} tiết</b> ${item.subject ? `— Lớp/Phòng: <b>${escapeHtml(item.subject)}</b>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                            <div class="text-right mr-1">
+                                <div class="font-display font-extrabold text-sm ${item.paid ? 'text-emerald-600 line-through' : 'text-amber-600'}">
+                                    ${item.mode === 'swap' ? `${item.periods} tiết dạy bù` : formatVND(item.money)}
+                                </div>
+                                <div class="text-[10px] text-slate-400">${item.paid ? 'Đã hoàn tất' : 'Chưa thanh toán'}</div>
+                            </div>
+
+                            <button onclick="addToGoogleCalendar('${item.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 transition" title="Thêm nhắc lịch Google Calendar">
+                                <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                            </button>
+
+                            <button onclick="toggleDayThayPaid('${item.id}')" class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 ${item.paid ? 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'}">
+                                <i data-lucide="${item.paid ? 'rotate-ccw' : 'check'}" class="w-3.5 h-3.5"></i>
+                                <span>${item.paid ? 'Hoàn tác' : (item.mode === 'swap' ? 'Đã trả tiết' : 'Bấm thu tiền')}</span>
+                            </button>
+
+                            <button onclick="deleteDayThay('${item.id}')" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Xóa">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        // ============================================================================
+        // 5. TAB 2: SỔ CHI TIÊU & CẢNH BÁO 3 TẦNG (150K/NGÀY - 1TR/TUẦN - 4TR/THÁNG)
+        // ============================================================================
+        window.setTxType = (type) => {
+            document.getElementById('ctType').value = type;
+            const expBtn = document.getElementById('btnTypeExpense');
+            const incBtn = document.getElementById('btnTypeIncome');
+            if (type === 'expense') {
+                expBtn.className = 'py-2 rounded-lg bg-white text-rose-600 shadow-sm transition';
+                incBtn.className = 'py-2 rounded-lg text-slate-600 transition';
+            } else {
+                incBtn.className = 'py-2 rounded-lg bg-white text-emerald-600 shadow-sm transition';
+                expBtn.className = 'py-2 rounded-lg text-slate-600 transition';
+                document.getElementById('ctCategory').value = 'Lương & Dạy thêm';
+            }
+        };
+
+        window.openBudgetModal = () => {
+            document.getElementById('limitDayInput').value = userSettings.dailyLimit || 150000;
+            document.getElementById('limitWeekInput').value = userSettings.weeklyLimit || 1000000;
+            document.getElementById('limitMonthInput').value = userSettings.monthlyLimit || 4000000;
+            document.getElementById('budgetModal').classList.remove('hidden');
+        };
+
+        window.closeBudgetModal = () => document.getElementById('budgetModal').classList.add('hidden');
+
+        window.resetDefaultBudgetLimits = () => {
+            document.getElementById('limitDayInput').value = 150000;
+            document.getElementById('limitWeekInput').value = 1000000;
+            document.getElementById('limitMonthInput').value = 4000000;
+        };
+
+        document.getElementById('formBudgetLimits').addEventListener('submit', (e) => {
+            e.preventDefault();
+            userSettings.dailyLimit = Number(document.getElementById('limitDayInput').value) || 150000;
+            userSettings.weeklyLimit = Number(document.getElementById('limitWeekInput').value) || 1000000;
+            userSettings.monthlyLimit = Number(document.getElementById('limitMonthInput').value) || 4000000;
+            saveUserSettings();
+            closeBudgetModal();
+            refreshChiTieuUI();
+            showToast('Đã cập nhật ngưỡng cảnh báo chi tiêu!');
+        });
+
+        function isSameWeek(dateStr, refDateStr) {
+            if (!dateStr || !refDateStr) return false;
+            const d = new Date(dateStr + 'T00:00:00');
+            const ref = new Date(refDateStr + 'T00:00:00');
+            if (isNaN(d) || isNaN(ref)) return false;
+
+            const dayOfWeek = (ref.getDay() + 6) % 7;
+            const startOfWeek = new Date(ref);
+            startOfWeek.setDate(ref.getDate() - dayOfWeek);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            return d >= startOfWeek && d <= endOfWeek;
+        }
+
+        function computeSpendingStats(targetDateStr) {
+            const refDate = targetDateStr || new Date().toISOString().split('T')[0];
+            const refMonth = refDate.slice(0, 7);
+
+            let spentDay = 0;
+            let spentWeek = 0;
+            let spentMonth = 0;
+
+            chiTieuList.forEach(tx => {
+                if (tx.type !== 'expense') return;
+                const amt = Number(tx.amount) || 0;
+                if (tx.date === refDate) spentDay += amt;
+                if (isSameWeek(tx.date, refDate)) spentWeek += amt;
+                if ((tx.date || '').startsWith(refMonth)) spentMonth += amt;
+            });
+
+            return { refDate, refMonth, spentDay, spentWeek, spentMonth };
+        }
+
+        document.getElementById('formChiTieu').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            const item = {
+                id: 'ct-' + Date.now(),
+                type: document.getElementById('ctType').value,
+                category: document.getElementById('ctCategory').value,
+                name: document.getElementById('ctName').value.trim(),
+                amount: Number(document.getElementById('ctAmount').value) || 0,
+                date: document.getElementById('ctDate').value,
+                createdAt: Date.now()
+            };
+            chiTieuList.unshift(item);
+            saveUserCollection('chitieu', chiTieuList);
+            document.getElementById('ctName').value = '';
+            document.getElementById('ctAmount').value = '';
+            refreshChiTieuUI();
+
+            if (item.type === 'expense') {
+                const stats = computeSpendingStats(item.date);
+                const dLimit = userSettings.dailyLimit || 150000;
+                const wLimit = userSettings.weeklyLimit || 1000000;
+                const mLimit = userSettings.monthlyLimit || 4000000;
+
+                const alerts = [];
+                if (stats.spentDay > dLimit) {
+                    alerts.push(`Hôm nay tiêu lố ${formatRawVND(stats.spentDay - dLimit)}`);
+                }
+                if (stats.spentWeek > 150000) {
+                    alerts.push(`Tuần này đã bay mất ${formatRawVND(stats.spentWeek)}`);
+                }
+                if (stats.spentWeek > wLimit) {
+                    alerts.push(`Vượt trần tuần ${formatRawVND(stats.spentWeek - wLimit)}`);
+                }
+                if (stats.spentMonth > mLimit) {
+                    alerts.push(`Vượt trần tháng ${formatRawVND(stats.spentMonth - mLimit)}`);
+                }
+
+                if (alerts.length > 0) {
+                    showToast(`${getRandomPoorQuote()} (${alerts.join(' • ')})`, true);
+                } else {
+                    showToast('Đã lưu khoản chi (Vẫn còn thở được, chưa vượt 150k!)');
+                }
+            } else {
+                showToast('Đã lưu khoản thu nhập! Có tiền cứu đói rồi 🎉');
+            }
+        });
+
+        window.deleteChiTieu = (id) => {
+            chiTieuList = chiTieuList.filter(x => x.id !== id);
+            saveUserCollection('chitieu', chiTieuList);
+            refreshChiTieuUI();
+            showToast('Đã xóa giao dịch');
+        };
+
+        window.quickOneTapExpense = (category, name, amount) => {
+            if (!currentUser) return;
+            const todayStr = new Date().toISOString().split('T')[0];
+            const item = {
+                id: 'ct-quick-' + Date.now(),
+                type: 'expense',
+                category,
+                name,
+                amount: Number(amount),
+                date: todayStr,
+                createdAt: Date.now()
+            };
+            chiTieuList.unshift(item);
+            saveUserCollection('chitieu', chiTieuList);
+            refreshChiTieuUI();
+
+            const stats = computeSpendingStats(todayStr);
+            const dLimit = userSettings.dailyLimit || 150000;
+            if (stats.spentDay > dLimit || stats.spentWeek > 150000) {
+                showToast(`${getRandomPoorQuote()} (Vừa bấm -${formatRawVND(amount)} ${name})`, true);
+            } else {
+                showToast(`⚡ Đã ghi nhanh: ${name} (-${formatRawVND(amount)})`);
+            }
+        };
+
+        function updateTierCardUI(prefix, spent, limit, unitLabel) {
+            const pct = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+            const barWidth = Math.min(100, pct);
+            const diff = limit - spent;
+
+            const cardEl = document.getElementById(`cardBudget${prefix}`);
+            const badgeEl = document.getElementById(`badgeBudget${prefix}`);
+            const barEl = document.getElementById(`barBudget${prefix}`);
+            const pctEl = document.getElementById(`pctBudget${prefix}`);
+            const remainEl = document.getElementById(`remainBudget${prefix}`);
+
+            pctEl.textContent = `Đã dùng ${pct}% định mức ${unitLabel}`;
+
+            if (spent > limit) {
+                cardEl.className = 'card-premium rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden border-rose-300 bg-rose-50/30 alert-pulse';
+                badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-600 text-white';
+                badgeEl.textContent = '🚨 Vượt mức!';
+                barEl.className = 'h-full bg-rose-600 rounded-full transition-all duration-500';
+                barEl.style.width = '100%';
+                remainEl.className = 'text-rose-600 font-extrabold';
+                remainEl.textContent = `Vượt +${formatVND(Math.abs(diff))}`;
+            } else if (pct >= 80) {
+                cardEl.className = 'card-premium rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden border-amber-300';
+                badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800';
+                badgeEl.textContent = '⚡ Sắp chạm trần';
+                barEl.className = 'h-full bg-amber-500 rounded-full transition-all duration-500';
+                barEl.style.width = `${barWidth}%`;
+                remainEl.className = 'text-amber-600 font-bold';
+                remainEl.textContent = `Còn ${formatVND(diff)}`;
+            } else {
+                cardEl.className = 'card-premium rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden';
+                badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700';
+                badgeEl.textContent = '✅ An toàn';
+                barEl.className = 'h-full bg-emerald-500 rounded-full transition-all duration-500';
+                barEl.style.width = `${barWidth}%`;
+                remainEl.className = 'text-emerald-600 font-semibold';
+                remainEl.textContent = `Còn trống ${formatVND(diff)}`;
+            }
+        }
+
+        function refreshChiTieuUI() {
+            const monthVal = document.getElementById('ctMonthFilter').value;
+            const searchQ = (document.getElementById('ctSearchInput').value || '').toLowerCase();
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            const statsToday = computeSpendingStats(todayStr);
+
+            const monthItems = chiTieuList.filter(item => {
+                if (monthVal && !(item.date || '').startsWith(monthVal)) return false;
+                if (searchQ && !(`${item.name} ${item.category}`.toLowerCase().includes(searchQ))) return false;
+                return true;
+            });
+
+            let totalIncome = 0, totalExpense = 0;
+            const catMap = {};
+
+            let fullSelectedMonthExpense = 0;
+            chiTieuList.forEach(item => {
+                if (monthVal && !(item.date || '').startsWith(monthVal)) return;
+                if (item.type === 'expense') fullSelectedMonthExpense += Number(item.amount) || 0;
+            });
+
+            monthItems.forEach(item => {
+                const amt = Number(item.amount) || 0;
+                if (item.type === 'income') {
+                    totalIncome += amt;
+                } else {
+                    totalExpense += amt;
+                    catMap[item.category] = (catMap[item.category] || 0) + amt;
+                }
+            });
+
+            const net = totalIncome - totalExpense;
+            document.getElementById('ctNetBalance').textContent = formatVND(net);
+            document.getElementById('ctTotalIncome').textContent = '+' + formatVND(totalIncome);
+            document.getElementById('ctTotalExpense').textContent = '-' + formatVND(totalExpense);
+
+            const dLimit = userSettings.dailyLimit || 150000;
+            const wLimit = userSettings.weeklyLimit || 1000000;
+            const mLimit = userSettings.monthlyLimit || 4000000;
+
+            document.getElementById('spentTodayText').textContent = formatVND(statsToday.spentDay);
+            document.getElementById('limitTodayText').textContent = formatVND(dLimit);
+            updateTierCardUI('Day', statsToday.spentDay, dLimit, 'ngày');
+
+            document.getElementById('spentWeekText').textContent = formatVND(statsToday.spentWeek);
+            document.getElementById('limitWeekText').textContent = formatVND(wLimit);
+            updateTierCardUI('Week', statsToday.spentWeek, wLimit, 'tuần');
+
+            document.getElementById('spentMonthText').textContent = formatVND(fullSelectedMonthExpense);
+            document.getElementById('limitMonthText').textContent = formatVND(mLimit);
+            updateTierCardUI('Month', fullSelectedMonthExpense, mLimit, 'tháng');
+
+            const warningBanner = document.getElementById('spendingWarningBanner');
+            const warningList = document.getElementById('spendingWarningList');
+            const funnyQuoteBox = document.getElementById('funnyPoorQuoteBox');
+            const statusText = document.getElementById('budgetAlertText');
+            const warnings = [];
+
+            if (statsToday.spentDay > dLimit) {
+                warnings.push(`<li><b>Hôm nay (${formatDate(todayStr)}):</b> Đã tiêu <b>${formatVND(statsToday.spentDay)}</b> — Lố mất <b>+${formatVND(statsToday.spentDay - dLimit)}</b> rồi, tối nay uống nước lọc đi ngủ nhé!</li>`);
+            }
+            if (statsToday.spentWeek > 150000 && statsToday.spentWeek <= wLimit) {
+                warnings.push(`<li><b>Báo động nhẹ tuần này:</b> Mới đó mà tuần này đã tiêu <b>${formatVND(statsToday.spentWeek)}</b> (vượt mốc 150k rồi đó!). Nhớ khâu bớt túi quần lại nha!</li>`);
+            }
+            if (statsToday.spentWeek > wLimit) {
+                warnings.push(`<li><b>Tuần này toang nặng:</b> Đã đốt <b>${formatVND(statsToday.spentWeek)}</b> — Vượt trần tuần (${formatVND(wLimit)}) tới <b>+${formatVND(statsToday.spentWeek - wLimit)}</b>! Chuẩn bị ăn mì tôm cả tuần!</li>`);
+            }
+            if (fullSelectedMonthExpense > mLimit) {
+                warnings.push(`<li><b>Tháng (${monthVal}) bất lực:</b> Đã tiêu <b>${formatVND(fullSelectedMonthExpense)}</b> — Vượt định mức tháng (${formatVND(mLimit)}) tận <b>+${formatVND(fullSelectedMonthExpense - mLimit)}</b>!</li>`);
+            }
+
+            if (warnings.length > 0) {
+                if (funnyQuoteBox) funnyQuoteBox.textContent = `"${getRandomPoorQuote()}"`;
+                warningList.innerHTML = warnings.join('');
+                warningBanner.classList.remove('hidden');
+                statusText.textContent = `😭 Tài chính đang kêu cứu (${warnings.length} báo động khổ)!`;
+                statusText.className = 'font-extrabold text-rose-400';
+            } else {
+                warningBanner.classList.add('hidden');
+                statusText.textContent = '✅ Ví vẫn còn thở tốt, chưa tới mức ăn mì tôm!';
+                statusText.className = 'font-bold text-emerald-300';
+            }
+
+            const catEl = document.getElementById('categoryBreakdownList');
+            const pieWrap = document.getElementById('expensePieChartWrap');
+            const entries = Object.entries(catMap).sort((a,b) => b[1] - a[1]);
+            const palette = ['#0284c7', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#64748b'];
+
+            if (!entries.length || totalExpense <= 0) {
+                if (pieWrap) {
+                    pieWrap.innerHTML = `
+                        <svg viewBox="0 0 36 36" class="w-32 h-32">
+                            <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#f1f5f9" stroke-width="4.5"></circle>
+                            <text x="18" y="19.5" text-anchor="middle" fill="#94a3b8" font-size="3.8" font-weight="bold">0%</text>
+                        </svg>
+                    `;
+                }
+                catEl.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center">Chưa có khoản chi nào trong tháng.</div>`;
+            } else {
+                let cumulativePercent = 0;
+                const circlesSvg = entries.map(([cat, val], idx) => {
+                    const rawPct = (val / totalExpense) * 100;
+                    const dashArray = `${rawPct} ${100 - rawPct}`;
+                    const dashOffset = 100 - cumulativePercent + 25;
+                    cumulativePercent += rawPct;
+                    const color = palette[idx % palette.length];
+                    return `<circle cx="18" cy="18" r="15.915" fill="transparent" stroke="${color}" stroke-width="5" stroke-dasharray="${dashArray}" stroke-dashoffset="${dashOffset}"></circle>`;
+                }).join('');
+
+                if (pieWrap) {
+                    pieWrap.innerHTML = `
+                        <svg viewBox="0 0 36 36" class="w-36 h-36 drop-shadow-sm">
+                            <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#f1f5f9" stroke-width="5"></circle>
+                            ${circlesSvg}
+                            <text x="18" y="17" text-anchor="middle" fill="#64748b" font-size="2.8" font-weight="bold">TỔNG CHI</text>
+                            <text x="18" y="21" text-anchor="middle" fill="#0f172a" font-size="3.2" font-weight="800">${entries.length} mục</text>
+                        </svg>
+                    `;
+                }
+
+                catEl.innerHTML = entries.map(([cat, val], idx) => {
+                    const p = totalExpense > 0 ? Math.round((val / totalExpense) * 100) : 0;
+                    const color = palette[idx % palette.length];
+                    return `
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-slate-700 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background:${color}"></span>
+                                    ${escapeHtml(cat)}
+                                </span>
+                                <span class="font-bold text-slate-900">${formatVND(val)} (${p}%)</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full" style="width:${p}%; background:${color}"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const listEl = document.getElementById('listChiTieu');
+            if (!monthItems.length) {
+                listEl.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">Chưa có giao dịch nào trong tháng này.</div>`;
+            } else {
+                listEl.innerHTML = monthItems.map(item => `
+                    <div class="p-3.5 sm:p-4 flex items-center justify-between hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${item.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                ${item.type === 'income' ? 'THU' : 'CHI'}
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-900 text-xs sm:text-sm">${escapeHtml(item.name)}</div>
+                                <div class="text-[11px] text-slate-500">${escapeHtml(item.category)} • ${formatDate(item.date)}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-display font-extrabold text-xs sm:text-sm ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}">
+                                ${item.type === 'income' ? '+' : '-'}${formatVND(item.amount)}
+                            </span>
+                            <button onclick="deleteChiTieu('${item.id}')" class="p-1.5 rounded-lg text-slate-300 hover:text-rose-600 transition">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        // ============================================================================
+        // 6. TAB 3: GHI CHÚ & CHECKLIST
+        // ============================================================================
+        document.getElementById('formGhiChu').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const rawChecklist = document.getElementById('gcChecklistRaw').value.trim();
+            const checklist = rawChecklist
+                ? rawChecklist.split('\n').map(t => t.trim()).filter(Boolean).map(text => ({ text, done: false }))
+                : [];
+
+            const note = {
+                id: 'gc-' + Date.now(),
+                title: document.getElementById('gcTitle').value.trim(),
+                tag: document.getElementById('gcTag').value,
+                color: document.getElementById('gcColor').value,
+                content: document.getElementById('gcContent').value.trim(),
+                checklist: checklist,
+                pinned: document.getElementById('gcPinned').checked,
+                createdAt: Date.now()
+            };
+
+            ghiChuList.unshift(note);
+            saveUserCollection('ghichu', ghiChuList);
+            e.target.reset();
+            showToast('Đã lưu ghi chú & checklist!');
+            refreshGhiChuUI();
+        });
+
+        window.toggleNotePin = (id) => {
+            const note = ghiChuList.find(n => n.id === id);
+            if (!note) return;
+            note.pinned = !note.pinned;
+            saveUserCollection('ghichu', ghiChuList);
+            refreshGhiChuUI();
+        };
+
+        window.toggleChecklistItem = (noteId, idx) => {
+            const note = ghiChuList.find(n => n.id === noteId);
+            if (!note || !note.checklist || !note.checklist[idx]) return;
+            note.checklist[idx].done = !note.checklist[idx].done;
+            saveUserCollection('ghichu', ghiChuList);
+            refreshGhiChuUI();
+        };
+
+        window.deleteGhiChu = (id) => {
+            ghiChuList = ghiChuList.filter(n => n.id !== id);
+            saveUserCollection('ghichu', ghiChuList);
+            refreshGhiChuUI();
+            showToast('Đã xóa ghi chú');
+        };
+
+        function refreshGhiChuUI() {
+            const container = document.getElementById('listGhiChu');
+            const sorted = [...ghiChuList].sort((a, b) => (Number(b.pinned) - Number(a.pinned)) || (b.createdAt - a.createdAt));
+
+            if (!sorted.length) {
+                container.innerHTML = `<div class="col-span-full text-center py-10 bg-white rounded-2xl border border-slate-200 text-slate-400 text-sm">Chưa có ghi chú hay checklist nào.</div>`;
+                return;
+            }
+
+            const colorClasses = {
+                amber: 'bg-amber-50/70 border-amber-200',
+                indigo: 'bg-indigo-50/70 border-indigo-200',
+                emerald: 'bg-emerald-50/70 border-emerald-200',
+                rose: 'bg-rose-50/70 border-rose-200'
+            };
+
+            container.innerHTML = sorted.map(note => {
+                const boxCls = colorClasses[note.color] || 'bg-white border-slate-200';
+                const checkHtml = (note.checklist || []).map((item, idx) => `
+                    <label class="flex items-start gap-2 text-xs cursor-pointer select-none py-1">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleChecklistItem('${note.id}', ${idx})" class="mt-0.5 rounded text-indigo-600">
+                        <span class="${item.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}">${escapeHtml(item.text)}</span>
+                    </label>
+                `).join('');
+
+                return `
+                    <div class="rounded-2xl border p-4 shadow-sm flex flex-col justify-between gap-3 ${boxCls}">
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/80 text-slate-700 border border-slate-200/60">${escapeHtml(note.tag || 'Ghi chú')}</span>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="toggleNotePin('${note.id}')" class="p-1 rounded-lg ${note.pinned ? 'text-amber-600 bg-amber-100' : 'text-slate-400 hover:text-slate-700'}" title="Ghim lên đầu">
+                                        <i data-lucide="pin" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <button onclick="deleteGhiChu('${note.id}')" class="p-1 rounded-lg text-slate-400 hover:text-rose-600" title="Xóa">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <h4 class="font-display font-bold text-slate-900 text-sm mt-2">${escapeHtml(note.title)}</h4>
+                            ${note.content ? `<p class="text-xs text-slate-600 mt-1.5 whitespace-pre-wrap">${escapeHtml(note.content)}</p>` : ''}
+                            ${checkHtml ? `<div class="mt-3 pt-2 border-t border-slate-200/60 space-y-0.5">${checkHtml}</div>` : ''}
+                        </div>
+                        <div class="text-[10px] text-slate-400 pt-2 border-t border-slate-200/50 flex justify-between">
+                            <span>${new Date(note.createdAt).toLocaleDateString('vi-VN')}</span>
+                            ${note.pinned ? '<span class="font-bold text-amber-600">📌 Đã ghim</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // ============================================================================
+        // 7. TAB 4: QUẢN TRỊ ADMIN & BACKUP SYSTEM
+        // ============================================================================
+        function loadSystemBanner() {
+            const text = localStorage.getItem(STORAGE_KEYS.BANNER) || '';
+            const banner = document.getElementById('systemBanner');
+            const bannerText = document.getElementById('systemBannerText');
+            const input = document.getElementById('adminBannerInput');
+            if (input) input.value = text;
+            if (text.trim()) {
+                bannerText.textContent = text;
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        window.saveSystemBanner = () => {
+            const val = document.getElementById('adminBannerInput').value.trim();
+            localStorage.setItem(STORAGE_KEYS.BANNER, val);
+            loadSystemBanner();
+            showToast('Đã phát thông báo toàn hệ thống!');
+        };
+
+        window.clearSystemBanner = () => {
+            localStorage.removeItem(STORAGE_KEYS.BANNER);
+            document.getElementById('adminBannerInput').value = '';
+            loadSystemBanner();
+            showToast('Đã tắt thông báo hệ thống');
+        };
+
+        document.getElementById('formAdminCreateUser').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('admNewName').value.trim();
+            const email = document.getElementById('admNewEmail').value.trim().toLowerCase();
+            const password = document.getElementById('admNewPass').value;
+            const isAdmin = document.getElementById('admNewIsAdmin').checked;
+
+            const users = getUsers();
+            if (users.some(u => u.email.toLowerCase() === email)) {
+                showToast('Email này đã tồn tại!', true);
+                return;
+            }
+            users.push({
+                uid: 'user-' + Date.now(),
+                name,
+                email,
+                password,
+                role: isAdmin ? 'admin' : 'member',
+                locked: false,
+                createdAt: Date.now()
+            });
+            saveUsers(users);
+            e.target.reset();
+            document.getElementById('admNewPass').value = '123456';
+            refreshAdminUI();
+            showToast(`Đã tạo tài khoản cho ${name}`);
+        });
+
+        window.adminResetUserPass = (uid) => {
+            const users = getUsers();
+            const u = users.find(x => x.uid === uid);
+            if (!u) return;
+            const nextPass = prompt(`Nhập mật khẩu mới cho tài khoản ${u.email}:`, '123456');
+            if (nextPass && nextPass.trim().length >= 4) {
+                u.password = nextPass.trim();
+                saveUsers(users);
+                refreshAdminUI();
+                showToast(`Đã đổi mật khẩu của ${u.email}`);
+            }
+        };
+
+        window.adminToggleLockUser = (uid) => {
+            const users = getUsers();
+            const u = users.find(x => x.uid === uid);
+            if (!u || u.email === 'admin@gmail.com') {
+                showToast('Không thể khóa Admin gốc!', true);
+                return;
+            }
+            u.locked = !u.locked;
+            saveUsers(users);
+            refreshAdminUI();
+            showToast(u.locked ? `Đã khóa ${u.email}` : `Đã mở khóa ${u.email}`);
+        };
+
+        window.adminDeleteUser = (uid) => {
+            let users = getUsers();
+            const u = users.find(x => x.uid === uid);
+            if (!u || u.email === 'admin@gmail.com') {
+                showToast('Không thể xóa tài khoản Admin mặc định!', true);
+                return;
+            }
+            users = users.filter(x => x.uid !== uid);
+            saveUsers(users);
+            refreshAdminUI();
+            showToast('Đã xóa người dùng');
+        };
+
+        function refreshAdminUI() {
+            const users = getUsers();
+            document.getElementById('adminUserCount').textContent = `${users.length} tài khoản`;
+            const tbody = document.getElementById('adminUsersTableBody');
+
+            const filterSel = document.getElementById('adminFilterUserSelect');
+            if (filterSel) {
+                const currentVal = filterSel.value || 'all';
+                filterSel.innerHTML = `<option value="all">👥 Tất cả người dùng (${users.length})</option>` +
+                    users.map(u => `<option value="${u.uid}">👤 ${escapeHtml(u.name || u.email)} (${escapeHtml(u.email)})</option>`).join('');
+                if ([...filterSel.options].some(o => o.value === currentVal)) {
+                    filterSel.value = currentVal;
+                }
+            }
+
+            tbody.innerHTML = users.map(u => {
+                let uTx = [];
+                try {
+                    uTx = JSON.parse(localStorage.getItem(getUserStorageKey(u.uid, 'chitieu')) || '[]');
+                } catch (e) { uTx = []; }
+                let uIncome = 0, uExpense = 0;
+                uTx.forEach(tx => {
+                    if (tx.type === 'income') uIncome += Number(tx.amount) || 0;
+                    else uExpense += Number(tx.amount) || 0;
+                });
+
+                return `
+                <tr class="hover:bg-slate-50">
+                    <td class="py-3 px-2">
+                        <div class="font-bold text-slate-900">${escapeHtml(u.name || 'Chưa đặt tên')}</div>
+                        <div class="text-[11px] text-slate-500">${escapeHtml(u.email)}</div>
+                    </td>
+                    <td class="py-3 px-2">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'}">
+                            ${u.role === 'admin' ? '👑 Admin' : 'Giáo viên'}
+                        </span>
+                    </td>
+                    <td class="py-3 px-2">
+                        <div class="text-[11px] font-bold text-emerald-600">Thu: +${formatVND(uIncome)}</div>
+                        <div class="text-[11px] font-bold text-rose-600">Chi: -${formatVND(uExpense)}</div>
+                    </td>
+                    <td class="py-3 px-2">
+                        <span class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded">${escapeHtml(u.password)}</span>
+                        ${u.locked ? '<span class="ml-1 text-[10px] font-bold text-rose-600">(Đã khóa)</span>' : ''}
+                    </td>
+                    <td class="py-3 px-2 text-right space-x-1">
+                        <button onclick="adminViewSingleUserSpending('${u.uid}')" class="px-2 py-1 rounded-lg bg-sky-50 text-sky-700 font-semibold hover:bg-sky-100">Xem chi tiêu</button>
+                        <button onclick="adminResetUserPass('${u.uid}')" class="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-600 font-semibold hover:bg-indigo-100">Đổi MK</button>
+                        <button onclick="adminToggleLockUser('${u.uid}')" class="px-2 py-1 rounded-lg bg-amber-50 text-amber-700 font-semibold hover:bg-amber-100">${u.locked ? 'Mở khóa' : 'Khóa'}</button>
+                        <button onclick="adminDeleteUser('${u.uid}')" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-600 font-semibold hover:bg-rose-100">Xóa</button>
+                    </td>
+                </tr>
+            `}).join('');
+
+            refreshAdminSpendingMonitor();
+        }
+
+        window.adminViewSingleUserSpending = (uid) => {
+            const filterSel = document.getElementById('adminFilterUserSelect');
+            if (filterSel) {
+                filterSel.value = uid;
+                refreshAdminSpendingMonitor();
+                filterSel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+
+        window.refreshAdminSpendingMonitor = () => {
+            const users = getUsers();
+            const filterUid = document.getElementById('adminFilterUserSelect')?.value || 'all';
+            const tbody = document.getElementById('adminAllSpendingTableBody');
+            const summaryBox = document.getElementById('adminAllUsersSummaryCards');
+            if (!tbody || !summaryBox) return;
+
+            let allRecords = [];
+            let sumIncome = 0;
+            let sumExpense = 0;
+
+            users.forEach(u => {
+                if (filterUid !== 'all' && u.uid !== filterUid) return;
+                let uTx = [];
+                try {
+                    uTx = JSON.parse(localStorage.getItem(getUserStorageKey(u.uid, 'chitieu')) || '[]');
+                } catch (e) { uTx = []; }
+
+                uTx.forEach(tx => {
+                    const amt = Number(tx.amount) || 0;
+                    if (tx.type === 'income') sumIncome += amt;
+                    else sumExpense += amt;
+                    allRecords.push({
+                        ...tx,
+                        userName: u.name || u.email,
+                        userEmail: u.email
+                    });
+                });
+            });
+
+            allRecords.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0));
+
+            summaryBox.innerHTML = `
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-100">
+                    <div class="text-[11px] font-bold text-emerald-700 uppercase">Tổng Thu Nhập (Đang lọc)</div>
+                    <div class="text-lg font-display font-extrabold text-emerald-600 mt-0.5">+${formatVND(sumIncome)}</div>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-100">
+                    <div class="text-[11px] font-bold text-rose-700 uppercase">Tổng Chi Tiêu (Đang lọc)</div>
+                    <div class="text-lg font-display font-extrabold text-rose-600 mt-0.5">-${formatVND(sumExpense)}</div>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-sky-50 border border-sky-100">
+                    <div class="text-[11px] font-bold text-sky-700 uppercase">Số dư thực tế / Tổng giao dịch</div>
+                    <div class="text-lg font-display font-extrabold text-sky-700 mt-0.5">${formatVND(sumIncome - sumExpense)} <span class="text-xs font-semibold text-slate-500">(${allRecords.length} khoản)</span></div>
+                </div>
+            `;
+
+            if (!allRecords.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">Chưa có dữ liệu thu chi nào của người dùng này.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = allRecords.map(r => `
+                <tr class="hover:bg-slate-50">
+                    <td class="py-2.5 px-3">
+                        <div class="font-bold text-slate-900">${escapeHtml(r.userName)}</div>
+                        <div class="text-[10px] text-slate-400">${escapeHtml(r.userEmail)}</div>
+                    </td>
+                    <td class="py-2.5 px-3 font-medium text-slate-600">${formatDate(r.date)}</td>
+                    <td class="py-2.5 px-3">
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${r.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                            ${r.type === 'income' ? 'THU' : 'CHI'}
+                        </span>
+                        <span class="ml-1 text-slate-600 font-semibold">${escapeHtml(r.category)}</span>
+                    </td>
+                    <td class="py-2.5 px-3 font-medium text-slate-800">${escapeHtml(r.name)}</td>
+                    <td class="py-2.5 px-3 text-right font-display font-extrabold ${r.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}">
+                        ${r.type === 'income' ? '+' : '-'}${formatVND(r.amount)}
+                    </td>
+                </tr>
+            `).join('');
+        };
+
+        window.openPasswordModal = () => document.getElementById('passwordModal').classList.remove('hidden');
+        window.closePasswordModal = () => document.getElementById('passwordModal').classList.add('hidden');
+        document.getElementById('formChangePass').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            const newPass = document.getElementById('newPassInput').value;
+            const users = getUsers();
+            const found = users.find(u => u.uid === currentUser.uid);
+            if (found) {
+                found.password = newPass;
+                saveUsers(users);
+                saveRememberedAccount(found.email, newPass);
+                document.getElementById('newPassInput').value = '';
+                closePasswordModal();
+                showToast('Đã cập nhật mật khẩu mới thành công!');
+            }
+        });
+
+        window.exportAllBackupJSON = () => {
+            const dump = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('sotay_gv_')) {
+                    dump[k] = localStorage.getItem(k);
+                }
+            }
+            const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Backup_GV_BatOn_${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            showToast('Đã tải file sao lưu (.JSON) toàn hệ thống!');
+        };
+
+        window.importAllBackupJSON = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const dump = JSON.parse(e.target.result);
+                    Object.keys(dump).forEach(k => {
+                        if (k.startsWith('sotay_gv_')) {
+                            localStorage.setItem(k, dump[k]);
+                        }
+                    });
+                    if (currentUser) loadUserData(currentUser.uid);
+                    refreshAllUI();
+                    showToast('Đã khôi phục dữ liệu thành công!');
+                } catch (err) {
+                    showToast('File sao lưu không hợp lệ!', true);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        window.toggleMobileCollapse = (wrapId, iconId) => {
+            const wrap = document.getElementById(wrapId);
+            const icon = document.getElementById(iconId);
+            if (!wrap) return;
+            const isHidden = wrap.classList.toggle('hidden');
+            if (icon) icon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
+            lucide.createIcons();
+        };
+
+        window.toggleFabMenu = () => {
+            const menu = document.getElementById('fabMenu');
+            if (!menu) return;
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        };
+
+        window.quickJumpAction = (tabId, cardId, inputId) => {
+            switchTab(tabId);
+            toggleFabMenu();
+            const card = document.getElementById(cardId);
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => {
+                const inp = document.getElementById(inputId);
+                if (inp) inp.focus();
+            }, 300);
+        };
+
+        // ============================================================================
+        // 8. TAB TKB & ĐỒNG HỒ TIẾT HỌC
+        // ============================================================================
+        const TKB_DAYS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
+        const TKB_SESSIONS = ['Sáng', 'Chiều', 'Tối'];
+
+        window.onQuickTkbTypeChange = () => {
+            const type = document.getElementById('tkbQuickType').value;
+            const rateInp = document.getElementById('tkbQuickRate');
+            if (type === 'offline') {
+                rateInp.value = 50000;
+                rateInp.readOnly = true;
+                rateInp.classList.add('bg-slate-100');
+            } else {
+                rateInp.readOnly = false;
+                rateInp.classList.remove('bg-slate-100');
+                if (Number(rateInp.value) === 50000) rateInp.value = 0;
+            }
+        };
+
+        window.onModalTkbTypeChange = () => {
+            const type = document.getElementById('tkbEditType').value;
+            const rateInp = document.getElementById('tkbEditRate');
+            if (type === 'offline') {
+                rateInp.value = 50000;
+                rateInp.readOnly = true;
+                rateInp.classList.add('bg-slate-100');
+            } else {
+                rateInp.readOnly = false;
+                rateInp.classList.remove('bg-slate-100');
+            }
+        };
+
+        function normalizeTkbEntry(raw) {
+            if (!raw) return null;
+            if (typeof raw === 'string') {
+                const trimmed = raw.trim();
+                if (!trimmed) return null;
+                return { subject: trimmed, center: '', session: '', mode: 'offline', rate: 50000 };
+            }
+            if (typeof raw === 'object' && (raw.subject || raw.center)) {
+                const mode = raw.mode === 'online' ? 'online' : 'offline';
+                const rate = mode === 'offline' ? 50000 : (Number(raw.rate) || 0);
+                return {
+                    subject: (raw.subject || '').trim(),
+                    center: (raw.center || '').trim(),
+                    session: (raw.session || '').trim(),
+                    mode,
+                    rate
+                };
+            }
+            return null;
+        }
+
+        document.getElementById('formAddTKB').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const dIdx = document.getElementById('tkbQuickDay').value;
+            const sIdx = document.getElementById('tkbQuickSession').value;
+            const subject = document.getElementById('tkbQuickSubject').value.trim();
+            const center = document.getElementById('tkbQuickCenter').value.trim();
+            const mode = document.getElementById('tkbQuickType').value;
+            const rate = mode === 'offline' ? 50000 : (Number(document.getElementById('tkbQuickRate').value) || 0);
+
+            if (!subject && !center) {
+                showToast('Vui lòng nhập Tên môn và Tên trung tâm!', true);
+                return;
+            }
+
+            const key = `${dIdx}_${sIdx}`;
+            if (!tkbMap) tkbMap = {};
+            tkbMap[key] = {
+                subject,
+                center,
+                session: TKB_SESSIONS[Number(sIdx)] || 'Sáng',
+                mode,
+                rate
+            };
+
+            saveUserCollection('tkb', tkbMap);
+            document.getElementById('tkbQuickSubject').value = '';
+            document.getElementById('tkbQuickCenter').value = '';
+            refreshTkbUI();
+            showToast(`Đã thêm "${subject}" (${mode === 'offline' ? 'Offline - 50k' : 'Online'}) vào ${TKB_DAYS[Number(dIdx)]}!`);
+        });
+
+        function refreshTkbUI() {
+            const container = document.getElementById('tkbGridContainer');
+            if (!container) return;
+
+            let totalOffline = 0;
+            let totalOnline = 0;
+            let totalWeeklyMoney = 0;
+
+            container.innerHTML = TKB_DAYS.map((day, dIdx) => {
+                const slotsHtml = TKB_SESSIONS.map((sess, sIdx) => {
+                    const key = `${dIdx}_${sIdx}`;
+                    const entry = normalizeTkbEntry(tkbMap ? tkbMap[key] : null);
+                    const isBusy = Boolean(entry);
+                    if (isBusy) {
+                        if (entry.mode === 'online') totalOnline++;
+                        else totalOffline++;
+                        totalWeeklyMoney += Number(entry.rate) || 0;
+                    }
+                    const isOnline = isBusy && entry.mode === 'online';
+                    return `
+                        <button type="button" onclick="openTkbSlotModal('${key}')"
+                            class="w-full text-left p-2.5 rounded-xl border transition flex flex-col gap-1 ${isBusy ? (isOnline ? 'bg-sky-50/90 border-sky-200 text-sky-950 shadow-sm' : 'bg-indigo-50/80 border-indigo-200 text-indigo-950 shadow-sm') : 'bg-emerald-50/50 border-emerald-200/70 text-emerald-800 hover:bg-emerald-100/60'}">
+                            <div class="flex items-center justify-between text-[11px] font-bold">
+                                <span>${sess === 'Sáng' ? '🌅 Sáng' : (sess === 'Chiều' ? '☀️ Chiều' : '🌙 Tối')}</span>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] uppercase ${isBusy ? (isOnline ? 'bg-sky-600 text-white' : 'bg-indigo-600 text-white') : 'bg-emerald-200/80 text-emerald-800'}">
+                                    ${isBusy ? (isOnline ? '💻 Online' : '🏫 Offline') : 'Ca trống'}
+                                </span>
+                            </div>
+                            ${isBusy ? `
+                                <div class="text-xs font-extrabold text-slate-900 leading-snug mt-0.5">📘 ${escapeHtml(entry.subject || 'Chưa ghi')}</div>
+                                <div class="text-[11px] font-semibold text-slate-600 truncate">🏫 ${escapeHtml(entry.center || 'Chưa ghi')}</div>
+                                <div class="text-[11px] font-extrabold ${entry.rate > 0 ? 'text-emerald-600' : 'text-slate-400'}">
+                                    💰 ${entry.mode === 'offline' ? formatVND(50000) + '/buổi' : (entry.rate > 0 ? formatVND(entry.rate) + '/buổi' : 'Online')}
+                                </div>
+                            ` : `
+                                <div class="text-[11px] font-medium text-emerald-700/80">Rảnh - Bấm nhập lịch</div>
+                            `}
+                        </button>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="p-3.5 rounded-2xl border border-slate-200 bg-white space-y-2 shadow-sm">
+                        <div class="font-display font-extrabold text-xs text-slate-900 uppercase tracking-wider pb-1.5 border-b border-slate-100 flex items-center justify-between">
+                            <span>${day}</span>
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-slate-400"></i>
+                        </div>
+                        <div class="space-y-2">${slotsHtml}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const statsEl = document.getElementById('tkbWeeklyStats');
+            if (statsEl) {
+                statsEl.innerHTML = `📊 Tổng tuần: <b>${totalOffline + totalOnline} buổi</b> (${totalOffline} Offline • ${totalOnline} Online) — Dự kiến: <b class="text-emerald-600">${formatVND(totalWeeklyMoney)}/tuần</b>`;
+            }
+
+            lucide.createIcons();
+        }
+
+        window.openTkbSlotModal = (key) => {
+            const [dIdx, sIdx] = key.split('_');
+            document.getElementById('tkbEditKey').value = key;
+            document.getElementById('tkbModalDay').value = dIdx;
+            document.getElementById('tkbModalSession').value = sIdx;
+            document.getElementById('tkbModalTitle').textContent = `${TKB_DAYS[Number(dIdx)]} • Buổi ${TKB_SESSIONS[Number(sIdx)]}`;
+
+            const entry = normalizeTkbEntry(tkbMap ? tkbMap[key] : null);
+            document.getElementById('tkbEditSubject').value = entry ? entry.subject : '';
+            document.getElementById('tkbEditCenter').value = entry ? entry.center : '';
+            document.getElementById('tkbEditType').value = entry ? entry.mode : 'offline';
+            onModalTkbTypeChange();
+            if (entry && entry.mode === 'online') {
+                document.getElementById('tkbEditRate').value = entry.rate || 0;
+            }
+
+            document.getElementById('tkbEditModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('tkbEditSubject').focus(), 100);
+        };
+
+        window.closeTkbModal = () => document.getElementById('tkbEditModal').classList.add('hidden');
+
+        window.clearTkbSlot = () => {
+            const oldKey = document.getElementById('tkbEditKey').value;
+            if (tkbMap && oldKey) delete tkbMap[oldKey];
+            saveUserCollection('tkb', tkbMap);
+            closeTkbModal();
+            refreshTkbUI();
+            showToast('Đã chuyển ca này về trạng thái Ca Trống!');
+        };
+
+        window.saveTkbSlot = () => {
+            const oldKey = document.getElementById('tkbEditKey').value;
+            const dIdx = document.getElementById('tkbModalDay').value;
+            const sIdx = document.getElementById('tkbModalSession').value;
+            const newKey = `${dIdx}_${sIdx}`;
+
+            const subject = document.getElementById('tkbEditSubject').value.trim();
+            const center = document.getElementById('tkbEditCenter').value.trim();
+            const mode = document.getElementById('tkbEditType').value;
+            const rate = mode === 'offline' ? 50000 : (Number(document.getElementById('tkbEditRate').value) || 0);
+
+            if (!tkbMap) tkbMap = {};
+            if (oldKey && oldKey !== newKey) {
+                delete tkbMap[oldKey];
+            }
+
+            if (subject || center) {
+                tkbMap[newKey] = {
+                    subject,
+                    center,
+                    session: TKB_SESSIONS[Number(sIdx)] || 'Sáng',
+                    mode,
+                    rate
+                };
+            } else {
+                delete tkbMap[newKey];
+            }
+
+            saveUserCollection('tkb', tkbMap);
+            closeTkbModal();
+            refreshTkbUI();
+            showToast('Đã lưu lịch dạy lên Thời khóa biểu!');
+        };
+
+        window.resetWeeklySchedule = () => {
+            tkbMap = {};
+            saveUserCollection('tkb', tkbMap);
+            refreshTkbUI();
+            showToast('Đã đặt lại toàn bộ lịch về Ca Trống!');
+        };
+
+        // Classroom 45-min Countdown Timer
+        let timerTotalSeconds = 45 * 60;
+        let timerInterval = null;
+
+        function updateTimerDisplay() {
+            const mins = String(Math.floor(timerTotalSeconds / 60)).padStart(2, '0');
+            const secs = String(timerTotalSeconds % 60).padStart(2, '0');
+            const disp = document.getElementById('classTimerDisplay');
+            const badge = document.getElementById('headerTimerBadge');
+            if (disp) disp.textContent = `${mins}:${secs}`;
+            if (badge) badge.textContent = timerInterval ? `${mins}:${secs}` : 'Canh tiết';
+        }
+
+        window.openTimerModal = () => document.getElementById('timerModal').classList.remove('hidden');
+        window.closeTimerModal = () => document.getElementById('timerModal').classList.add('hidden');
+
+        window.setClassTimer = (minutes) => {
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            timerTotalSeconds = minutes * 60;
+            document.getElementById('btnStartTimer').textContent = 'Bắt đầu chạy';
+            document.getElementById('classTimerStatus').textContent = `Đã chọn mốc ${minutes} phút`;
+            updateTimerDisplay();
+        };
+
+        window.toggleClassTimer = () => {
+            const btn = document.getElementById('btnStartTimer');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.textContent = 'Tiếp tục';
+                document.getElementById('classTimerStatus').textContent = 'Đang tạm dừng';
+            } else {
+                btn.textContent = 'Tạm dừng';
+                document.getElementById('classTimerStatus').textContent = 'Đang đếm ngược tiết học...';
+                timerInterval = setInterval(() => {
+                    if (timerTotalSeconds > 0) {
+                        timerTotalSeconds--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        btn.textContent = 'Bắt đầu chạy';
+                        document.getElementById('classTimerStatus').textContent = '🔔 HẾT GIỜ TIẾT HỌC!';
+                        showToast('🔔 RENG RENG! Đã hết giờ tiết học / kiểm tra rồi!');
+                    }
+                }, 1000);
+            }
+            updateTimerDisplay();
+        };
+
+        window.resetClassTimer = () => setClassTimer(45);
+
+        // ============================================================================
+        // 9. NAVIGATION & INITIALIZATION
+        // ============================================================================
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                const isTarget = btn.dataset.target === tabId;
+                if (btn.closest('nav')) {
+                    btn.className = `tab-btn flex-1 py-1.5 flex flex-col items-center gap-1 ${isTarget ? (tabId === 'tabAdmin' ? 'text-rose-600' : 'text-indigo-600') : 'text-slate-400'}`;
+                    if (btn.id === 'navAdminMobile' && (!currentUser || (currentUser.role !== 'admin' && currentUser.email !== 'admin@gmail.com'))) {
+                        btn.classList.add('hidden');
+                    }
+                } else {
+                    if (btn.id === 'navAdminDesktop') {
+                        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.email === 'admin@gmail.com');
+                        if (!isAdmin) { btn.classList.add('hidden'); return; }
+                        btn.className = `tab-btn flex px-4 py-2.5 rounded-xl font-bold text-sm transition items-center gap-2 ${isTarget ? 'bg-rose-600 text-white shadow-md shadow-rose-200' : 'bg-rose-50 text-rose-600 border border-rose-200'}`;
+                    } else {
+                        btn.className = `tab-btn px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2 ${isTarget ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'}`;
+                    }
+                }
+            });
+            lucide.createIcons();
+        };
+
+        function initDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dtDate').value = today;
+            document.getElementById('ctDate').value = today;
+            document.getElementById('ctMonthFilter').value = today.slice(0, 7);
+        }
+
+        function refreshAllUI() {
+            refreshDayThayUI();
+            refreshChiTieuUI();
+            refreshTkbUI();
+            refreshGhiChuUI();
+            refreshAdminUI();
+            lucide.createIcons();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSystemUsers();
+            applyCustomLogo();
+            renderRememberedAccounts();
+            try {
+                const savedSession = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSION) || 'null');
+                if (savedSession && savedSession.uid) {
+                    const users = getUsers();
+                    const found = users.find(u => u.uid === savedSession.uid);
+                    if (found && !found.locked) {
+                        loginSuccess(found, false);
+                        return;
+                    }
+                }
+            } catch (e) {}
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
