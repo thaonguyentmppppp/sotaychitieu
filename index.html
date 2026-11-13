@@ -695,27 +695,23 @@
             <!-- ==================== TAB 2.5: LỊCH TRỐNG & THỜI KHÓA BIỂU ==================== -->
             <section id="tabTKB" class="tab-content space-y-5">
                 <!-- TKB Stats Summary -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div class="card-premium rounded-2xl p-4 flex items-center justify-between">
-                        <div>
-                            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Thu nhập TKB (Tháng)</div>
-                            <div class="text-xl font-display font-extrabold text-emerald-600 mt-1" id="tkbMonthIncome">0 ₫</div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600"><i data-lucide="wallet" class="w-5 h-5"></i></div>
-                    </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="card-premium rounded-2xl p-4 flex items-center justify-between">
                         <div>
                             <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tiền Xăng (Tháng)</div>
                             <div class="text-xl font-display font-extrabold text-rose-600 mt-1" id="tkbMonthGas">0 ₫</div>
+                            <div class="text-[10px] font-bold text-emerald-600 mt-1.5 bg-emerald-50 px-2 py-0.5 rounded-md inline-block border border-emerald-100">
+                                Thu nhập TKB: <span id="tkbMonthIncome">0 ₫</span>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600"><i data-lucide="fuel" class="w-5 h-5"></i></div>
+                        <div class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 shrink-0"><i data-lucide="fuel" class="w-5 h-5"></i></div>
                     </div>
                     <div class="card-premium rounded-2xl p-4 flex items-center justify-between">
                         <div>
                             <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Số buổi dạy tuần này</div>
                             <div class="text-xl font-display font-extrabold text-indigo-600 mt-1" id="tkbWeekSessions">0 buổi</div>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600"><i data-lucide="book-open" class="w-5 h-5"></i></div>
+                        <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0"><i data-lucide="book-open" class="w-5 h-5"></i></div>
                     </div>
                 </div>
 
@@ -779,15 +775,24 @@
                 <!-- Bảng hiển thị Thời Khóa Biểu -->
                 <div class="card-premium rounded-3xl overflow-hidden shadow-sm">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100 bg-white">
-                        <div class="flex items-center gap-3">
+                        <div>
                             <h4 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
                                 <i data-lucide="table" class="w-5 h-5 text-indigo-600"></i> Lịch Dạy Theo Tuần
                             </h4>
+                            <div class="flex items-center gap-3 mt-2 text-[11px] font-bold">
+                                <span class="text-indigo-700 bg-indigo-50 px-2 py-1 rounded-lg">Tổng ca tuần: <span id="tkbWeekSessionsSummary">0</span></span>
+                                <span class="text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Dự kiến thu: <span id="tkbWeekExpectedIncome">0 ₫</span></span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
-                            <button onclick="changeTkbWeek(-1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-indigo-600 transition" title="Tuần trước"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                            <button onclick="resetTkbWeekToToday()" class="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 transition">Tuần này</button>
-                            <button onclick="changeTkbWeek(1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-indigo-600 transition" title="Tuần sau"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        <div class="flex flex-col sm:items-end gap-2.5">
+                            <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+                                <button onclick="changeTkbWeek(-1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-indigo-600 transition" title="Tuần trước"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                                <button onclick="resetTkbWeekToToday()" class="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 transition">Tuần này</button>
+                                <button onclick="changeTkbWeek(1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-indigo-600 transition" title="Tuần sau"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                            </div>
+                            <button onclick="copyTkbZalo()" class="px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy lịch gửi Zalo
+                            </button>
                         </div>
                     </div>
 
@@ -2797,6 +2802,46 @@
             document.getElementById('tkbMonthGas').textContent = formatVND(totalGas);
         };
 
+        window.copyTkbZalo = () => {
+            const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+            let result = `📅 LỊCH TRỐNG / DẠY TUẦN NÀY (${formatDate(currentTkbWeekStart.toISOString().split('T')[0])}):\n`;
+            let hasClasses = false;
+
+            for (let i = 0; i < 7; i++) {
+                let d = new Date(currentTkbWeekStart);
+                d.setDate(d.getDate() + i);
+                const dateStr = d.toISOString().split('T')[0];
+                let dayEntries = [];
+
+                TKB_SESSIONS.forEach((sess, sIdx) => {
+                    const key = `${dateStr}_${sIdx}`;
+                    const entry = tkbMap ? tkbMap[key] : null;
+                    if (entry && entry.subject) {
+                        const type = entry.mode === 'offline' ? '🏫' : (entry.mode === 'online' ? '💻' : '📝');
+                        dayEntries.push(`  • ${sess.name}: ${entry.subject} (${entry.center}) ${type}`);
+                    }
+                });
+
+                if (dayEntries.length > 0) {
+                    hasClasses = true;
+                    result += `\n▶ ${dayNames[i]} (${d.getDate()}/${d.getMonth()+1}):\n` + dayEntries.join('\n');
+                }
+            }
+
+            if (!hasClasses) {
+                showToast('Tuần này chưa có lịch dạy nào để copy!', true);
+                return;
+            }
+
+            const tempArea = document.createElement('textarea');
+            tempArea.value = result;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempArea);
+            showToast('Đã copy lịch dạy tuần để gửi Zalo/Messenger!');
+        };
+
         function refreshTkbUI() {
             const headEl = document.getElementById('tkbGridHead');
             const bodyEl = document.getElementById('tkbGridBody');
@@ -2806,8 +2851,8 @@
             const weekDates = [];
             const todayStr = new Date().toISOString().split('T')[0];
 
-            let theadHtml = `<tr class="bg-slate-900 text-slate-100 text-xs font-bold">
-                <th class="py-3 px-2 border-r border-slate-700 w-24 text-center whitespace-nowrap">Buổi / Ca</th>`;
+            let theadHtml = `<tr class="bg-gradient-to-r from-sky-600 to-sky-800 text-white text-xs font-bold border-b border-sky-900">
+                <th class="py-3 px-2 border-r border-sky-500/40 w-24 text-center whitespace-nowrap">Buổi / Ca</th>`;
 
             for (let i = 0; i < 7; i++) {
                 let d = new Date(currentTkbWeekStart);
@@ -2818,10 +2863,10 @@
                 const displayDate = `${d.getDate()}/${d.getMonth()+1}`;
                 const isToday = dStr === todayStr;
                 
-                theadHtml += `<th class="py-3 px-2 border-r border-slate-700 text-center ${isToday ? 'bg-amber-600 text-white' : ''}">
+                theadHtml += `<th class="py-3 px-2 border-r border-sky-500/40 text-center ${isToday ? 'bg-sky-400 text-white shadow-inner' : ''}">
                     <div class="text-sm">${dayNames[i]}</div>
-                    <div class="text-[10px] font-normal mt-0.5 ${isToday ? 'text-amber-100' : 'text-slate-400'}">
-                        ${displayDate} ${isToday ? '<span class="bg-amber-300 text-amber-900 px-1 rounded ml-1 font-bold">Hôm nay</span>' : ''}
+                    <div class="text-[10px] font-medium mt-0.5 ${isToday ? 'text-sky-50' : 'text-sky-200/80'}">
+                        ${displayDate} ${isToday ? '<span class="bg-white text-sky-600 px-1.5 py-0.5 rounded-md ml-1 font-bold shadow-sm">Hôm nay</span>' : ''}
                     </div>
                 </th>`;
             }
@@ -2830,6 +2875,7 @@
 
             let tbodyHtml = '';
             let weekSessions = 0;
+            let weekExpectedIncome = 0;
 
             TKB_SESSIONS.forEach((sess, sIdx) => {
                 tbodyHtml += `<tr class="border-b border-slate-200">
@@ -2845,23 +2891,35 @@
 
                     if (entry && entry.subject) {
                         weekSessions++;
+                        weekExpectedIncome += Number(entry.rate) || 0;
+
                         let modeLabel = 'Offline';
-                        let modeColor = 'bg-slate-100 text-slate-700';
-                        if (entry.mode === 'online') { modeLabel = 'Online'; modeColor = 'bg-sky-100 text-sky-700'; }
-                        if (entry.mode === 'gacthi') { modeLabel = 'Gác thi'; modeColor = 'bg-amber-100 text-amber-700'; }
+                        let modeColor = 'bg-emerald-100 text-emerald-700';
+                        let cardStyle = 'bg-emerald-50/60 border-emerald-300';
+                        
+                        if (entry.mode === 'online') { 
+                            modeLabel = 'Online'; 
+                            modeColor = 'bg-violet-100 text-violet-700';
+                            cardStyle = 'bg-violet-50/60 border-violet-300';
+                        }
+                        if (entry.mode === 'gacthi') { 
+                            modeLabel = 'Gác thi'; 
+                            modeColor = 'bg-orange-100 text-orange-700';
+                            cardStyle = 'bg-orange-50/60 border-orange-300';
+                        }
 
                         tbodyHtml += `
                         <td class="p-2 border-r border-slate-200 align-top min-w-[120px]">
-                            <div class="bg-white rounded-xl border border-amber-300 shadow-sm p-2.5 text-left h-full flex flex-col cursor-pointer hover:shadow-md transition relative group" onclick="openTkbSlotModal('${dateStr}', ${sIdx})">
-                                <div class="font-bold text-sky-700 text-xs leading-tight mb-1 flex items-start gap-1">
-                                    <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0 mt-0.5"></i> <span>${escapeHtml(entry.subject)}</span>
+                            <div class="rounded-xl border shadow-sm p-2.5 text-left h-full flex flex-col cursor-pointer hover:shadow-md transition relative group ${cardStyle}" onclick="openTkbSlotModal('${dateStr}', ${sIdx})">
+                                <div class="font-bold text-slate-800 text-xs leading-tight mb-1 flex items-start gap-1">
+                                    <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-600"></i> <span>${escapeHtml(entry.subject)}</span>
                                 </div>
                                 <div class="text-[10px] text-slate-600 mb-1.5 line-clamp-2 flex gap-1">
                                     <i data-lucide="building-2" class="w-3 h-3 shrink-0 mt-0.5"></i> <span>${escapeHtml(entry.center)}</span>
                                 </div>
-                                <div class="mt-auto pt-2 flex items-center justify-between border-t border-slate-100">
+                                <div class="mt-auto pt-2 flex items-center justify-between border-t border-slate-200/50">
                                     <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${modeColor} uppercase">${modeLabel}</span>
-                                    <span class="text-[10px] font-extrabold text-emerald-600">${formatRawVND(entry.rate)}</span>
+                                    <span class="text-[10px] font-extrabold text-slate-800">${formatRawVND(entry.rate)}</span>
                                 </div>
                             </div>
                         </td>`;
@@ -2877,6 +2935,11 @@
             bodyEl.innerHTML = tbodyHtml;
             const weekStatsEl = document.getElementById('tkbWeekSessions');
             if (weekStatsEl) weekStatsEl.textContent = `${weekSessions} buổi`;
+            
+            const weekSummaryEl = document.getElementById('tkbWeekSessionsSummary');
+            if (weekSummaryEl) weekSummaryEl.textContent = `${weekSessions}`;
+            const expectedIncomeEl = document.getElementById('tkbWeekExpectedIncome');
+            if (expectedIncomeEl) expectedIncomeEl.textContent = formatRawVND(weekExpectedIncome);
 
             lucide.createIcons();
             refreshTkbStats();
