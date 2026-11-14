@@ -638,7 +638,7 @@
                                 <div class="text-[11px] font-semibold text-slate-400 mt-0.5" id="selectedDateTxCount">0 giao dịch</div>
                             </div>
                             <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                <i data-lucide="TrendingUp" class="w-5 h-5"></i>
+                                <i data-lucide="trending-up" class="w-5 h-5"></i>
                             </div>
                         </div>
                     </div>
@@ -1306,6 +1306,30 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL 7: THÔNG BÁO ĐÃ THU TIỀN DẠY THAY THÀNH CÔNG -->
+    <div id="paidSuccessModal" class="hidden fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 text-center space-y-4 border-2 border-emerald-200 animate-[fadeIn_0.2s_ease-out]">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner text-3xl">
+                💸
+            </div>
+            <div>
+                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[11px] uppercase tracking-wider">
+                    ✅ ĐÃ THU TIỀN DẠY THAY!
+                </span>
+                <h3 id="paidModalTitle" class="font-display font-extrabold text-slate-900 text-lg mt-2">
+                    Đã thu tiền thành công!
+                </h3>
+                <div id="paidModalAmount" class="text-2xl font-display font-extrabold text-emerald-600 mt-1">
+                    +0 ₫
+                </div>
+                <p id="paidModalDesc" class="text-xs text-slate-600 mt-2 bg-slate-50 p-3 rounded-2xl border border-slate-100 leading-relaxed"></p>
+            </div>
+            <button type="button" onclick="closePaidSuccessModal()" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-200 transition active:scale-95">
+                Tuyệt vời! Đã nhận đủ tiền 🎉
+            </button>
+        </div>
+    </div>
                 
     <!-- APPLICATION & FIREBASE CLOUD-FIRST SYNC ENGINE -->
     <script>
@@ -1402,14 +1426,25 @@
             return Array.from(map.values());
         }
 
-        // Gộp mảng dữ liệu (TKB, Chi tiêu, Dạy thay, Ghi chú) theo ID để không bị ghi đè mất dữ liệu
+        // Gộp mảng dữ liệu (TKB, Chi tiêu, Dạy thay, Ghi chú) theo ID và ưu tiên bản ghi vừa cập nhật mới nhất (updatedAt)
         function mergeArrayById(localArr, remoteArr) {
             const map = new Map();
-            (Array.isArray(localArr) ? localArr : []).forEach(item => {
-                if (item && item.id) map.set(item.id, item);
-            });
             (Array.isArray(remoteArr) ? remoteArr : []).forEach(item => {
-                if (item && item.id) map.set(item.id, item);
+                if (item && item.id) map.set(String(item.id), item);
+            });
+            (Array.isArray(localArr) ? localArr : []).forEach(item => {
+                if (!item || !item.id) return;
+                const key = String(item.id);
+                const existing = map.get(key);
+                if (!existing) {
+                    map.set(key, item);
+                } else {
+                    const localTime = Number(item.updatedAt || item.createdAt || 0);
+                    const remoteTime = Number(existing.updatedAt || existing.createdAt || 0);
+                    if (localTime >= remoteTime) {
+                        map.set(key, item);
+                    }
+                }
             });
             return Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         }
@@ -1437,7 +1472,7 @@
                         try {
                             const localObj = JSON.parse(localStorage.getItem(k) || '{}');
                             const remoteObj = JSON.parse(cloudVal || '{}');
-                            localStorage.setItem(k, JSON.stringify({ ...localObj, ...remoteObj }));
+                            localStorage.setItem(k, JSON.stringify({ ...remoteObj, ...localObj }));
                         } catch (e) {
                             localStorage.setItem(k, cloudVal);
                         }
@@ -1468,30 +1503,11 @@
             }
         }
 
-        // Đẩy toàn bộ dữ liệu từ máy hiện tại lên Firebase Cloud
+        // Đẩy toàn bộ dữ liệu từ máy hiện tại lên Firebase Cloud (Ưu tiên tuyệt đối thay đổi vừa thao tác trên máy)
         window.pushLocalToFirebaseCloud = async () => {
             if (isApplyingRemote || !masterDocRef) return false;
             try {
-                // Đọc dữ liệu trên mây trước để gộp (tránh máy mới trống trơn ghi đè mất tài khoản trên mây)
-                let existingCloudData = {};
-                try {
-                    const snap = await masterDocRef.get({ source: 'server' });
-                    if (snap.exists && snap.data()?.storageData) {
-                        existingCloudData = snap.data().storageData;
-                    }
-                } catch (readErr) {
-                    if (readErr && readErr.code === 'permission-denied') {
-                        setCloudStatusUI('permission-denied');
-                        return false;
-                    }
-                }
-
-                // Gộp Cloud hiện có về máy trước
-                if (Object.keys(existingCloudData).length > 0) {
-                    applyCloudPayloadToLocal(existingCloudData);
-                }
-
-                const payload = { ...existingCloudData };
+                const payload = {};
                 for (let i = 0; i < localStorage.length; i++) {
                     const k = localStorage.key(i);
                     if (k && k.startsWith('sotay_gv_') && k !== STORAGE_KEYS.SESSION && k !== STORAGE_KEYS.REMEMBERED) {
@@ -2048,8 +2064,9 @@
             if (!currentUser) return;
 
             const mode = document.getElementById('dtMode').value;
+            const nowTs = Date.now();
             const record = {
-                id: 'dt-' + Date.now(),
+                id: 'dt-' + nowTs,
                 mode: mode,
                 date: document.getElementById('dtDate').value,
                 session: document.getElementById('dtSession').value,
@@ -2060,7 +2077,8 @@
                 money: mode === 'swap' ? 0 : (Number(document.getElementById('dtMoney').value) || 0),
                 syncIncome: document.getElementById('dtSyncIncome').checked,
                 paid: false,
-                createdAt: Date.now()
+                createdAt: nowTs,
+                updatedAt: nowTs
             };
 
             dayThayList.unshift(record);
@@ -2072,56 +2090,108 @@
             refreshDayThayUI();
         });
 
-        window.toggleDayThayPaid = (id) => {
-            const item = dayThayList.find(x => x.id === id);
-            if (!item) return;
-            item.paid = !item.paid;
-            saveUserCollection('daythay', dayThayList);
-
-            if (item.paid && item.mode !== 'swap' && item.money > 0 && item.syncIncome) {
-                const alreadyLogged = chiTieuList.some(tx => tx.linkedSubId === item.id);
-                if (!alreadyLogged) {
-                    chiTieuList.unshift({
-                        id: 'ct-auto-' + Date.now(),
-                        linkedSubId: item.id,
-                        type: 'income',
-                        category: 'Lương & Dạy thêm',
-                        name: `Thu tiền dạy thay ${item.teacher} (${formatDate(item.date)})`,
-                        amount: Number(item.money),
-                        date: new Date().toISOString().split('T')[0],
-                        createdAt: Date.now()
-                    });
-                    saveUserCollection('chitieu', chiTieuList);
-                    refreshChiTieuUI();
-                    showToast(`Đã thu & tự động cộng +${formatRawVND(item.money)} vào Sổ Chi Tiêu!`);
-                    refreshDayThayUI();
-                    return;
+        function safeRenderIcons() {
+            try {
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
                 }
+            } catch (err) {
+                console.warn('Lucide icon render warning:', err);
             }
+        }
 
-            showToast(item.paid ? 'Đã đánh dấu hoàn tất!' : 'Đã chuyển về chưa thanh toán');
-            refreshDayThayUI();
+        window.openPaidSuccessModal = (title, amountText, descHtml) => {
+            const modal = document.getElementById('paidSuccessModal');
+            if (!modal) return;
+            document.getElementById('paidModalTitle').textContent = title;
+            document.getElementById('paidModalAmount').textContent = amountText;
+            document.getElementById('paidModalDesc').innerHTML = descHtml;
+            modal.classList.remove('hidden');
         };
 
-        window.markAllTeacherPaid = (teacherName) => {
-            let count = 0;
-            let addedIncome = 0;
-            dayThayList.forEach(item => {
-                if (item.teacher === teacherName && !item.paid) {
-                    item.paid = true;
-                    count++;
-                    if (item.mode !== 'swap' && item.money > 0 && item.syncIncome) {
-                        const alreadyLogged = chiTieuList.some(tx => tx.linkedSubId === item.id);
+        window.closePaidSuccessModal = () => {
+            const modal = document.getElementById('paidSuccessModal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.toggleDayThayPaid = (id) => {
+            const targetId = String(id || '').trim();
+            const item = dayThayList.find(x => String(x.id).trim() === targetId);
+            if (!item) {
+                showToast('Không tìm thấy bản ghi dạy thay này!', true);
+                return;
+            }
+
+            item.paid = !Boolean(item.paid);
+            item.updatedAt = Date.now();
+            saveUserCollection('daythay', dayThayList);
+
+            // Vẽ lại giao diện ngay lập tức để hiện ĐÃ THU TIỀN & GẠCH BỎ
+            refreshDayThayUI();
+
+            if (item.paid) {
+                let syncedMsg = '';
+                try {
+                    if (item.mode !== 'swap' && Number(item.money) > 0 && item.syncIncome !== false) {
+                        const alreadyLogged = chiTieuList.some(tx => String(tx.linkedSubId) === String(item.id));
                         if (!alreadyLogged) {
+                            const txNow = Date.now();
                             chiTieuList.unshift({
-                                id: 'ct-auto-' + Date.now() + '-' + count,
+                                id: 'ct-auto-' + txNow,
                                 linkedSubId: item.id,
                                 type: 'income',
                                 category: 'Lương & Dạy thêm',
                                 name: `Thu tiền dạy thay ${item.teacher} (${formatDate(item.date)})`,
                                 amount: Number(item.money),
                                 date: new Date().toISOString().split('T')[0],
-                                createdAt: Date.now()
+                                createdAt: txNow,
+                                updatedAt: txNow
+                            });
+                            saveUserCollection('chitieu', chiTieuList);
+                            try { refreshChiTieuUI(); } catch (e) {}
+                            syncedMsg = `<br><span class="text-emerald-700 font-bold">✨ Đã tự động cộng vào Sổ Chi Tiêu (Thu nhập)!</span>`;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Sync income error:', err);
+                }
+
+                const amountLabel = item.mode === 'swap' ? `Đã trả đủ ${item.periods} tiết` : `+${formatRawVND(item.money)}`;
+                openPaidSuccessModal(
+                    item.mode === 'swap' ? 'Đã hoàn tất đổi tiết!' : `Đã thu tiền từ GV ${item.teacher}!`,
+                    amountLabel,
+                    `Buổi dạy ngày <b>${formatDate(item.date)} (${escapeHtml(item.session)})</b> • <b>${item.periods} tiết</b> ${item.subject ? '[' + escapeHtml(item.subject) + ']' : ''} đã chuyển sang <b>✅ ĐÃ THU TIỀN & GẠCH BỎ</b>.${syncedMsg}`
+                );
+                showToast(`✅ ĐÃ THU TIỀN: GV ${item.teacher} (${amountLabel})`);
+            } else {
+                showToast('⏳ Đã hoàn tác về trạng thái: Chưa thu tiền');
+            }
+        };
+
+        window.markAllTeacherPaid = (teacherName) => {
+            let count = 0;
+            let totalCollected = 0;
+            let addedIncome = 0;
+            const nowTs = Date.now();
+            dayThayList.forEach(item => {
+                if (item.teacher === teacherName && !item.paid) {
+                    item.paid = true;
+                    item.updatedAt = nowTs;
+                    count++;
+                    totalCollected += Number(item.money) || 0;
+                    if (item.mode !== 'swap' && Number(item.money) > 0 && item.syncIncome !== false) {
+                        const alreadyLogged = chiTieuList.some(tx => String(tx.linkedSubId) === String(item.id));
+                        if (!alreadyLogged) {
+                            chiTieuList.unshift({
+                                id: 'ct-auto-' + nowTs + '-' + count,
+                                linkedSubId: item.id,
+                                type: 'income',
+                                category: 'Lương & Dạy thêm',
+                                name: `Thu tiền dạy thay ${item.teacher} (${formatDate(item.date)})`,
+                                amount: Number(item.money),
+                                date: new Date().toISOString().split('T')[0],
+                                createdAt: nowTs,
+                                updatedAt: nowTs
                             });
                             addedIncome += Number(item.money);
                         }
@@ -2129,12 +2199,18 @@
                 }
             });
             saveUserCollection('daythay', dayThayList);
+            refreshDayThayUI();
             if (addedIncome > 0) {
                 saveUserCollection('chitieu', chiTieuList);
-                refreshChiTieuUI();
+                try { refreshChiTieuUI(); } catch (e) {}
             }
-            refreshDayThayUI();
-            showToast(`Đã thanh toán ${count} buổi của ${teacherName}!`);
+            openPaidSuccessModal(
+                `Đã thu hết tiền của ${teacherName}!`,
+                `+${formatRawVND(totalCollected)}`,
+                `Đã gạch bỏ và đánh dấu <b>ĐÃ THU TIỀN</b> cho toàn bộ <b>${count} buổi dạy thay</b> của <b>${escapeHtml(teacherName)}</b>.` +
+                (addedIncome > 0 ? `<br><span class="text-emerald-700 font-bold">✨ Đã tự động cộng vào Sổ Chi Tiêu!</span>` : '')
+            );
+            showToast(`✅ Đã thu tiền ${count} buổi của ${teacherName}!`);
         };
 
         window.deleteDayThay = (id) => {
@@ -2333,44 +2409,49 @@
                 listEl.innerHTML = `<div class="text-center py-10 bg-white rounded-2xl border border-slate-200 text-slate-400 text-sm">Không có buổi dạy thay nào khớp bộ lọc.</div>`;
             } else {
                 listEl.innerHTML = filtered.map(item => `
-                    <div class="bg-white p-4 rounded-2xl border ${item.paid ? 'border-slate-200 opacity-75' : 'border-indigo-200/80 shadow-sm'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="space-y-1">
+                    <div class="p-4 rounded-2xl border-2 transition relative overflow-hidden ${item.paid ? 'bg-emerald-50/70 border-emerald-400' : 'bg-white border-indigo-100 shadow-sm'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="space-y-1.5">
                             <div class="flex flex-wrap items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700">${formatDate(item.date)} • ${escapeHtml(item.session)}</span>
-                                <span class="font-display font-bold text-slate-900 text-sm">GV: ${escapeHtml(item.teacher)}</span>
-                                ${item.school ? `<span class="text-xs text-slate-500">• 🏫 ${escapeHtml(item.school)}</span>` : ''}
+                                <span style="${item.paid ? 'text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: #e11d48;' : ''}" class="px-2.5 py-0.5 rounded-lg text-xs font-bold ${item.paid ? 'bg-slate-200 text-slate-500' : 'bg-indigo-50 text-indigo-700'}">${formatDate(item.date)} • ${escapeHtml(item.session)}</span>
+                                <span style="${item.paid ? 'text-decoration: line-through; text-decoration-thickness: 2.5px; text-decoration-color: #e11d48;' : ''}" class="font-display font-extrabold text-sm sm:text-base ${item.paid ? 'text-slate-400' : 'text-slate-900'}">GV: ${escapeHtml(item.teacher)}</span>
+                                ${item.school ? `<span style="${item.paid ? 'text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: #e11d48;' : ''}" class="text-xs font-semibold ${item.paid ? 'text-slate-400' : 'text-slate-500'}">• 🏫 ${escapeHtml(item.school)}</span>` : ''}
                                 ${item.mode === 'swap' ? `<span class="px-2 py-0.5 rounded-md bg-violet-100 text-violet-700 text-[10px] font-bold">🔄 Đổi tiết</span>` : ''}
+                                ${item.paid 
+                                    ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[11px] font-extrabold inline-flex items-center gap-1 shadow-sm">✅ ${item.mode === 'swap' ? 'ĐÃ TRẢ TIẾT' : 'ĐÃ THU TIỀN'}</span>` 
+                                    : `<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold">⏳ Chưa thu tiền</span>`
+                                }
                             </div>
-                            <div class="text-xs text-slate-600">
+                            <div style="${item.paid ? 'text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: #e11d48;' : ''}" class="text-xs ${item.paid ? 'text-slate-400' : 'text-slate-600'}">
                                 📖 <b>${item.periods} tiết</b> ${item.subject ? `— Lớp/Phòng: <b>${escapeHtml(item.subject)}</b>` : ''}
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between sm:justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                             <div class="text-right mr-1">
-                                <div class="font-display font-extrabold text-sm ${item.paid ? 'text-emerald-600 line-through' : 'text-amber-600'}">
+                                <div style="${item.paid ? 'text-decoration: line-through; text-decoration-thickness: 2.5px; text-decoration-color: #e11d48;' : ''}" class="font-display font-extrabold text-sm sm:text-base ${item.paid ? 'text-slate-400' : 'text-amber-600'}">
                                     ${item.mode === 'swap' ? `${item.periods} tiết dạy bù` : formatVND(item.money)}
                                 </div>
-                                <div class="text-[10px] text-slate-400">${item.paid ? 'Đã hoàn tất' : 'Chưa thanh toán'}</div>
+                                <div class="text-[11px] font-extrabold ${item.paid ? 'text-emerald-700' : 'text-amber-600'}">
+                                    ${item.paid ? '✅ Đã thu tiền (Đã gạch bỏ)' : '⏳ Chờ thanh toán'}
+                                </div>
                             </div>
 
-                            <button onclick="addToGoogleCalendar('${item.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 transition" title="Thêm nhắc lịch Google Calendar">
-                                <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                            <button type="button" data-action="cal" data-id="${escapeHtml(item.id)}" class="p-2 rounded-xl bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 transition" title="Thêm nhắc lịch Google Calendar">
+                                <i data-lucide="calendar-plus" class="w-4 h-4 pointer-events-none"></i>
                             </button>
 
-                            <button onclick="toggleDayThayPaid('${item.id}')" class="px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 ${item.paid ? 'bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-700' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'}">
-                                <i data-lucide="${item.paid ? 'rotate-ccw' : 'check'}" class="w-3.5 h-3.5"></i>
-                                <span>${item.paid ? 'Hoàn tác' : (item.mode === 'swap' ? 'Đã trả tiết' : 'Bấm thu tiền')}</span>
+                            <button type="button" data-action="pay" data-id="${escapeHtml(item.id)}" style="${item.paid ? 'text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: #e11d48;' : ''}" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer select-none ${item.paid ? 'bg-slate-200 text-slate-700 hover:bg-amber-100 hover:text-amber-800' : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-100'}">
+                                <span class="pointer-events-none">${item.paid ? '✅ Đã thu tiền' : (item.mode === 'swap' ? '💳 Xác nhận trả tiết' : '💳 Bấm thu tiền')}</span>
                             </button>
 
-                            <button onclick="deleteDayThay('${item.id}')" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Xóa">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <button type="button" data-action="del" data-id="${escapeHtml(item.id)}" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Xóa">
+                                <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
                             </button>
                         </div>
                     </div>
                 `).join('');
             }
-            lucide.createIcons();
+            safeRenderIcons();
         }
 
         // ============================================================================
@@ -3920,6 +4001,22 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Event delegation đảm bảo bấm nút Thu tiền / Xóa / Lịch ăn 100% không bao giờ trượt
+            const listDtEl = document.getElementById('listDayThay');
+            if (listDtEl) {
+                listDtEl.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button[data-action]');
+                    if (!btn) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const action = btn.getAttribute('data-action');
+                    const id = btn.getAttribute('data-id');
+                    if (action === 'pay') window.toggleDayThayPaid(id);
+                    else if (action === 'del') window.deleteDayThay(id);
+                    else if (action === 'cal') window.addToGoogleCalendar(id);
+                });
+            }
+
             initSystemUsers();
             applyCustomLogo();
             renderRememberedAccounts();
