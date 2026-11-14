@@ -474,7 +474,7 @@
                         <div>
                             <div class="flex items-center justify-between gap-2">
                                 <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                                    <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Chi tiêu Hôm nay
+                                    <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> <span id="labelBudgetDayTitle">Chi tiêu Hôm nay</span>
                                 </span>
                                 <span id="badgeBudgetDay" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">An toàn</span>
                             </div>
@@ -540,6 +540,70 @@
                             <div class="flex items-center justify-between text-[11px] font-semibold">
                                 <span id="pctBudgetMonth" class="text-slate-500">0% định mức tháng</span>
                                 <span id="remainBudgetMonth" class="text-emerald-600">Còn trống 4.000.000 ₫</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Bộ Lọc Xem Chi Tiêu Theo Ngày Cụ Thể -->
+                <div class="card-premium rounded-3xl p-4 sm:p-5 border-2 border-sky-200/80 bg-gradient-to-r from-sky-50/70 via-white to-teal-50/60 shadow-sm">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-lg bg-sky-600 text-white text-[11px] font-extrabold uppercase tracking-wide flex items-center gap-1">
+                                    <i data-lucide="calendar-search" class="w-3.5 h-3.5"></i> Xem Chi Tiêu Theo Ngày
+                                </span>
+                                <span id="dailyFilterModeBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Đang lọc theo ngày</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Chọn ngày bất kỳ để kiểm tra ngày hôm đó đã tiêu bao nhiêu tiền, bao nhiêu tiền xăng & vượt hạn mức 150k chưa.</p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <button type="button" onclick="shiftChiTieuFilterDate(-1)" class="p-2 rounded-xl bg-white border border-slate-200 hover:bg-sky-50 text-slate-700 text-xs font-bold shadow-sm transition" title="Ngày trước">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            </button>
+                            <input type="date" id="ctDayFilter" onchange="onChangeChiTieuDayFilter()" class="px-3 py-2 rounded-xl border border-sky-300 bg-white text-xs sm:text-sm font-extrabold text-sky-900 outline-none focus:ring-2 focus:ring-sky-200 shadow-sm">
+                            <button type="button" onclick="shiftChiTieuFilterDate(1)" class="p-2 rounded-xl bg-white border border-slate-200 hover:bg-sky-50 text-slate-700 text-xs font-bold shadow-sm transition" title="Ngày sau">
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="setChiTieuDayToday(0)" class="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-sm transition">Hôm nay</button>
+                            <button type="button" onclick="setChiTieuDayToday(-1)" class="px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition">Hôm qua</button>
+                            <button type="button" id="btnShowFullMonthTx" onclick="clearChiTieuDayFilter()" class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition">Xem cả tháng</button>
+                        </div>
+                    </div>
+
+                    <!-- KPI Chi tiết của Ngày đang chọn -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-3.5 border-t border-sky-100">
+                        <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 flex items-center justify-between">
+                            <div>
+                                <div class="text-[11px] font-bold text-slate-500 uppercase" id="selectedDateLabelTitle">TỔNG CHI NGÀY ĐANG CHỌN</div>
+                                <div class="text-xl font-display font-extrabold text-rose-600 mt-0.5" id="selectedDateTotalExpense">0 ₫</div>
+                                <div class="text-[11px] font-semibold text-slate-400 mt-0.5" id="selectedDateStatusSub">Chưa vượt 150k</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="receipt" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 flex items-center justify-between">
+                            <div>
+                                <div class="text-[11px] font-bold text-slate-500 uppercase">TIỀN XĂNG TRONG NGÀY</div>
+                                <div class="text-lg font-display font-extrabold text-amber-600 mt-0.5" id="selectedDateGasExpense">0 ₫</div>
+                                <div class="text-[11px] font-semibold text-slate-400 mt-0.5" id="selectedDateOtherExpense">Chi khác: 0 ₫</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="fuel" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-3.5 border border-slate-200/80 flex items-center justify-between">
+                            <div>
+                                <div class="text-[11px] font-bold text-slate-500 uppercase">THU NHẬP TRONG NGÀY</div>
+                                <div class="text-lg font-display font-extrabold text-emerald-600 mt-0.5" id="selectedDateIncome">0 ₫</div>
+                                <div class="text-[11px] font-semibold text-slate-400 mt-0.5" id="selectedDateTxCount">0 giao dịch</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="TrendingUp" class="w-5 h-5"></i>
                             </div>
                         </div>
                     </div>
@@ -681,8 +745,11 @@
                     </div>
 
                     <div class="lg:col-span-2 card-premium rounded-3xl overflow-hidden flex flex-col">
-                        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-2">
-                            <h4 class="font-display font-bold text-sm text-slate-800">Lịch sử giao dịch trong tháng</h4>
+                        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h4 class="font-display font-bold text-sm text-slate-800" id="historyListHeaderTitle">Lịch sử giao dịch</h4>
+                                <p class="text-[11px] text-slate-400" id="historyListSubTitle">Đang hiển thị các khoản thu/chi</p>
+                            </div>
                             <input type="text" id="ctSearchInput" oninput="refreshChiTieuUI()" placeholder="Tìm khoản thu chi..." class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs outline-none">
                         </div>
                         <div class="divide-y divide-slate-100 max-h-[520px] overflow-y-auto" id="listChiTieu">
@@ -722,7 +789,7 @@
                             <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
                                 <i data-lucide="calendar-plus" class="w-5 h-5 text-sky-600"></i> Nhập Lên Thời Khóa Biểu (TKB)
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Điền <b>Ngày</b>, <b>Buổi</b> và chọn <b>Hình thức</b>.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Điền <b>Ngày</b>, <b>Buổi</b>, <b>Môn</b>, <b>Khóa</b>, <b>Lịch của</b> (tùy chọn) và chọn <b>Hình thức</b>.</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <label class="text-xs font-bold text-slate-600">Thống kê tháng:</label>
@@ -730,7 +797,7 @@
                         </div>
                     </div>
 
-                    <form id="formAddTKB" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 items-end">
+                    <form id="formAddTKB" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-9 gap-3 items-end">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Ngày dạy/gác thi *</label>
                             <input type="date" id="tkbQuickDate" required onchange="updateTkbQuickDayLabel()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-sky-600">
@@ -746,16 +813,26 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Tên môn học *</label>
-                            <input type="text" id="tkbQuickSubject" required placeholder="VD: Tiếng Anh..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                            <input type="text" id="tkbQuickSubject" required placeholder="VD: Trí tuệ nhân tạo..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Khóa / Lớp *</label>
+                            <input type="text" id="tkbQuickCourse" list="courseSuggestions" placeholder="VD: CNTT K25, K26..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                            <datalist id="courseSuggestions"></datalist>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Tên trung tâm/Trường *</label>
-                            <input type="text" id="tkbQuickCenter" list="schoolSuggestions" required placeholder="VD: TT Á Châu..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                            <input type="text" id="tkbQuickCenter" list="schoolSuggestions" required placeholder="VD: TT Ô Môn..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức dạy *</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Lịch của (Tùy chọn)</label>
+                            <input type="text" id="tkbQuickOwner" list="ownerSuggestions" placeholder="Không bắt buộc..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                            <datalist id="ownerSuggestions"></datalist>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức *</label>
                             <select id="tkbQuickType" onchange="onQuickTkbTypeChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:border-sky-600 font-bold text-indigo-700">
-                                <option value="offline">🏫 Offline (50k/buổi)</option>
+                                <option value="offline">🏫 Offline (50k)</option>
                                 <option value="online">💻 Online</option>
                                 <option value="gacthi">📝 Gác thi</option>
                             </select>
@@ -777,22 +854,27 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100 bg-white">
                         <div>
                             <h4 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
-                                <i data-lucide="table" class="w-5 h-5 text-indigo-600"></i> Lịch Dạy Theo Tuần
+                                <i data-lucide="table" class="w-5 h-5 text-sky-600"></i> Lịch Dạy Theo Tuần
                             </h4>
-                            <div class="flex items-center gap-3 mt-2 text-[11px] font-bold">
-                                <span class="text-indigo-700 bg-indigo-50 px-2 py-1 rounded-lg">Tổng ca tuần: <span id="tkbWeekSessionsSummary">0</span></span>
-                                <span class="text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Dự kiến thu: <span id="tkbWeekExpectedIncome">0 ₫</span></span>
+                            <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px] font-bold">
+                                <span class="text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">Tổng ca tuần: <span id="tkbWeekSessionsSummary">0</span></span>
+                                <span class="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">Dự kiến thu: <span id="tkbWeekExpectedIncome">0 ₫</span></span>
                             </div>
                         </div>
                         <div class="flex flex-col sm:items-end gap-2.5">
                             <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
-                                <button onclick="changeTkbWeek(-1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-indigo-600 transition" title="Tuần trước"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                                <button onclick="resetTkbWeekToToday()" class="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-indigo-600 transition">Tuần này</button>
-                                <button onclick="changeTkbWeek(1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-indigo-600 transition" title="Tuần sau"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                                <button onclick="changeTkbWeek(-1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-sky-600 transition" title="Tuần trước"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                                <button onclick="resetTkbWeekToToday()" class="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-sky-600 transition">Tuần này</button>
+                                <button onclick="changeTkbWeek(1)" class="p-1.5 rounded-lg bg-white text-slate-600 shadow-sm hover:text-sky-600 transition" title="Tuần sau"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                             </div>
-                            <button onclick="copyTkbZalo()" class="px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition active:scale-95">
-                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy lịch gửi Zalo
-                            </button>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button onclick="openWeekCalendarSyncModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                                    <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i> Đồng bộ tuần vào GG Calendar
+                                </button>
+                                <button onclick="copyTkbZalo()" class="px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy lịch gửi Zalo
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -1051,8 +1133,8 @@
     </div>
 
     <!-- MODAL 6: CẬP NHẬT Ô THỜI KHÓA BIỂU (INLINE MODAL) -->
-    <div id="tkbEditModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4">
+    <div id="tkbEditModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4 my-auto">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 id="tkbModalTitle" class="font-display font-bold text-slate-900 text-base">Cập nhật ca dạy</h3>
                 <button onclick="closeTkbModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1062,16 +1144,26 @@
                 <input type="hidden" id="tkbEditSessionIdx">
                 
                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-                    <p id="tkbModalDateLabel" class="text-sm font-bold text-indigo-700"></p>
+                    <p id="tkbModalDateLabel" class="text-sm font-bold text-sky-700"></p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Tên môn học *</label>
-                    <input type="text" id="tkbEditSubject" placeholder="VD: Tiếng Anh giao tiếp, Toán 12..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                    <input type="text" id="tkbEditSubject" placeholder="VD: Ứng dụng tin học, Trí tuệ nhân tạo..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Khóa / Lớp</label>
+                        <input type="text" id="tkbEditCourse" list="courseSuggestions" placeholder="VD: CNTT K25..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:border-sky-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Lịch của (Tùy chọn)</label>
+                        <input type="text" id="tkbEditOwner" list="ownerSuggestions" placeholder="Để trống cũng được..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:border-sky-600">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Tên trung tâm / Trường *</label>
-                    <input type="text" id="tkbEditCenter" list="schoolSuggestions" placeholder="VD: Trung tâm VUS, THPT..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                    <input type="text" id="tkbEditCenter" list="schoolSuggestions" placeholder="VD: Trung tâm Bình Tân, Ô Môn..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -1088,8 +1180,46 @@
                     </div>
                 </div>
                 <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="clearTkbSlot()" class="px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition">Xóa (Ca Trống)</button>
+                    <button type="button" onclick="clearTkbSlot()" class="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition">Xóa ca này</button>
                     <button type="button" onclick="saveTkbSlot()" class="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-md shadow-sky-100 transition">Lưu lên TKB</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: ĐỒNG BỘ LỊCH TUẦN VÀO GOOGLE CALENDAR -->
+    <div id="weekCalModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 my-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                        <i data-lucide="calendar-check-2" class="w-5 h-5 text-emerald-600"></i> Liên Kết Lịch Tuần Vào Google Calendar
+                    </h3>
+                    <p id="weekCalModalSub" class="text-xs text-slate-500 mt-0.5">Chọn tải 1 file lịch cả tuần hoặc bấm thêm từng buổi vào Google Calendar</p>
+                </div>
+                <button onclick="closeWeekCalendarSyncModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-800">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Option 1: Download .ICS File for whole week -->
+            <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-2.5">
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <h4 class="font-display font-bold text-xs sm:text-sm text-emerald-950">Cách 1: Đồng bộ 1 chạm toàn bộ lịch tuần (.ICS)</h4>
+                        <p class="text-[11px] text-emerald-800 mt-0.5">Tải file chuẩn lịch quốc tế (.ics) chứa tất cả các ca dạy trong tuần này để mở bằng Google Calendar hoặc Lịch iPhone/Laptop chỉ với 1 cú nhấp.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="downloadWeekIcsFile()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition">
+                    <i data-lucide="download" class="w-4 h-4"></i> Tải file Lịch cả tuần (.ics) & Mở Lịch
+                </button>
+            </div>
+
+            <!-- Option 2: Direct Google Calendar Web Links per class -->
+            <div class="space-y-2">
+                <h4 class="font-display font-bold text-xs sm:text-sm text-slate-800">Cách 2: Bấm thêm trực tiếp từng ca vào Google Calendar Web</h4>
+                <div id="weekCalDirectLinksList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    <!-- JS Injected -->
                 </div>
             </div>
         </div>
@@ -1164,10 +1294,108 @@
         </div>
     </div>
 
+    <!-- FIREBASE CLOUD SYNC MODULE (Đồng bộ tài khoản & dữ liệu giữa Điện thoại và Laptop) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLhhkP8emnXM-BY48q8xMFhOujgiTOBmg",
+            authDomain: "giaovienbaton.firebaseapp.com",
+            projectId: "giaovienbaton",
+            storageBucket: "giaovienbaton.firebasestorage.app",
+            messagingSenderId: "916540723369",
+            appId: "1:916540723369:web:29d31f26ae38753903d9b8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const GLOBAL_DOC_REF = doc(db, "giaovienbaton_cloud", "app_master_state_v1");
+
+        let isApplyingRemote = false;
+
+        // Đẩy toàn bộ dữ liệu từ máy lên Firebase Cloud
+        window.pushLocalToFirebaseCloud = async () => {
+            if (isApplyingRemote) return;
+            try {
+                const payload = {};
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('sotay_gv_') && k !== 'sotay_gv_pro_session_v3' && k !== 'sotay_gv_pro_remembered_v3') {
+                        payload[k] = localStorage.getItem(k);
+                    }
+                }
+                await setDoc(GLOBAL_DOC_REF, {
+                    updatedAt: Date.now(),
+                    storageData: payload
+                }, { merge: true });
+            } catch (err) {
+                console.warn("Firebase sync push warning:", err);
+            }
+        };
+
+        // Tải dữ liệu từ Firebase Cloud về máy khi mở web hoặc khi thiết bị khác vừa cập nhật
+        function applyCloudPayloadToLocal(storageData) {
+            if (!storageData) return;
+            isApplyingRemote = true;
+            try {
+                Object.keys(storageData).forEach(k => {
+                    if (k.startsWith('sotay_gv_') && k !== 'sotay_gv_pro_session_v3' && k !== 'sotay_gv_pro_remembered_v3') {
+                        const cloudVal = storageData[k];
+                        if (typeof cloudVal === 'string') {
+                            // Nếu là danh sách tài khoản, gộp thông minh để không mất tài khoản vừa tạo
+                            if (k === 'sotay_gv_pro_users_v3') {
+                                try {
+                                    const localUsers = JSON.parse(localStorage.getItem(k) || '[]');
+                                    const remoteUsers = JSON.parse(cloudVal || '[]');
+                                    const map = new Map();
+                                    localUsers.forEach(u => map.set(u.email.toLowerCase(), u));
+                                    remoteUsers.forEach(u => map.set(u.email.toLowerCase(), u));
+                                    localStorage.setItem(k, JSON.stringify(Array.from(map.values())));
+                                } catch (e) {
+                                    localStorage.setItem(k, cloudVal);
+                                }
+                            } else {
+                                localStorage.setItem(k, cloudVal);
+                            }
+                        }
+                    }
+                });
+                if (window.onCloudDataUpdated) window.onCloudDataUpdated();
+            } finally {
+                isApplyingRemote = false;
+            }
+        }
+
+        // Khởi động lắng nghe realtime từ Firebase
+        async function initCloudSync() {
+            try {
+                const snap = await getDoc(GLOBAL_DOC_REF);
+                if (snap.exists() && snap.data()?.storageData) {
+                    applyCloudPayloadToLocal(snap.data().storageData);
+                } else {
+                    await window.pushLocalToFirebaseCloud();
+                }
+            } catch (e) {
+                console.warn("Initial cloud fetch error:", e);
+            }
+
+            onSnapshot(GLOBAL_DOC_REF, (snapshot) => {
+                if (snapshot.exists() && snapshot.data()?.storageData) {
+                    applyCloudPayloadToLocal(snapshot.data().storageData);
+                }
+            }, (error) => {
+                console.warn("Realtime listener error:", error);
+            });
+        }
+
+        initCloudSync();
+    </script>
+
     <!-- APPLICATION SCRIPT (Smart Hybrid Cloud + LocalStorage Engine) -->
     <script>
         // ============================================================================
-        // 1. SMART STORAGE ENGINE (100% GitHub Pages Compatible + Multi-User Support)
+        // 1. SMART STORAGE ENGINE (100% GitHub Pages + Firebase Cloud Sync)
         // ============================================================================
         const STORAGE_KEYS = {
             USERS: 'sotay_gv_pro_users_v3',
@@ -1175,6 +1403,20 @@
             REMEMBERED: 'sotay_gv_pro_remembered_v3',
             BANNER: 'sotay_gv_pro_banner_v3',
             CUSTOM_LOGO: 'sotay_gv_pro_custom_logo_v3'
+        };
+
+        function triggerCloudSync() {
+            if (window.pushLocalToFirebaseCloud) {
+                window.pushLocalToFirebaseCloud();
+            }
+        }
+
+        window.onCloudDataUpdated = () => {
+            if (currentUser) {
+                loadUserData(currentUser.uid);
+                loadSystemBanner();
+                refreshAllUI();
+            }
         };
 
         // Bộ câu thoại cảnh báo chi tiêu hài hước, than nghèo kể khổ khi vượt 150k
@@ -1294,6 +1536,7 @@
 
         function saveUsers(users) {
             localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+            triggerCloudSync();
         }
 
         function getUserStorageKey(uid, collection) {
@@ -1324,11 +1567,13 @@
         function saveUserCollection(collectionName, dataArray) {
             if (!currentUser) return;
             localStorage.setItem(getUserStorageKey(currentUser.uid, collectionName), JSON.stringify(dataArray));
+            triggerCloudSync();
         }
 
         function saveUserSettings() {
             if (!currentUser) return;
             localStorage.setItem(getUserStorageKey(currentUser.uid, 'settings'), JSON.stringify(userSettings));
+            triggerCloudSync();
         }
 
         // ============================================================================
@@ -1983,6 +2228,12 @@
             saveUserCollection('chitieu', chiTieuList);
             document.getElementById('ctName').value = '';
             document.getElementById('ctAmount').value = '';
+
+            // Tự động chuyển ngày đang xem về đúng ngày vừa nhập để thấy ngay số tiền cập nhật
+            const dayFilterEl = document.getElementById('ctDayFilter');
+            if (dayFilterEl && item.date) {
+                dayFilterEl.value = item.date;
+            }
             refreshChiTieuUI();
 
             if (item.type === 'expense') {
@@ -1993,7 +2244,7 @@
 
                 const alerts = [];
                 if (stats.spentDay > dLimit) {
-                    alerts.push(`Hôm nay tiêu lố ${formatRawVND(stats.spentDay - dLimit)}`);
+                    alerts.push(`Ngày ${formatDate(item.date)} tiêu lố ${formatRawVND(stats.spentDay - dLimit)}`);
                 }
                 if (stats.spentWeek > 150000) {
                     alerts.push(`Tuần này đã bay mất ${formatRawVND(stats.spentWeek)}`);
@@ -2008,7 +2259,7 @@
                 if (alerts.length > 0) {
                     showToast(`${getRandomPoorQuote()} (${alerts.join(' • ')})`, true);
                 } else {
-                    showToast('Đã lưu khoản chi (Vẫn còn thở được, chưa vượt 150k!)');
+                    showToast(`Đã lưu khoản chi ngày ${formatDate(item.date)} (Vẫn dưới 150k!)`);
                 }
             } else {
                 showToast('Đã lưu khoản thu nhập! Có tiền cứu đói rồi 🎉');
@@ -2024,27 +2275,64 @@
 
         window.quickOneTapExpense = (category, name, amount) => {
             if (!currentUser) return;
-            const todayStr = new Date().toISOString().split('T')[0];
+            const selectedDay = document.getElementById('ctDayFilter')?.value || new Date().toISOString().split('T')[0];
             const item = {
                 id: 'ct-quick-' + Date.now(),
                 type: 'expense',
                 category,
                 name,
                 amount: Number(amount),
-                date: todayStr,
+                date: selectedDay,
                 createdAt: Date.now()
             };
             chiTieuList.unshift(item);
             saveUserCollection('chitieu', chiTieuList);
             refreshChiTieuUI();
 
-            const stats = computeSpendingStats(todayStr);
+            const stats = computeSpendingStats(selectedDay);
             const dLimit = userSettings.dailyLimit || 150000;
             if (stats.spentDay > dLimit || stats.spentWeek > 150000) {
                 showToast(`${getRandomPoorQuote()} (Vừa bấm -${formatRawVND(amount)} ${name})`, true);
             } else {
-                showToast(`⚡ Đã ghi nhanh: ${name} (-${formatRawVND(amount)})`);
+                showToast(`⚡ Đã ghi nhanh ngày ${formatDate(selectedDay)}: ${name} (-${formatRawVND(amount)})`);
             }
+        };
+
+        // Các hàm điều khiển Bộ lọc Xem chi tiêu theo ngày
+        window.onChangeChiTieuDayFilter = () => {
+            const dayVal = document.getElementById('ctDayFilter').value;
+            if (dayVal) {
+                document.getElementById('ctMonthFilter').value = dayVal.slice(0, 7);
+                document.getElementById('ctDate').value = dayVal;
+            }
+            refreshChiTieuUI();
+        };
+
+        window.shiftChiTieuFilterDate = (offsetDays) => {
+            const inp = document.getElementById('ctDayFilter');
+            const baseDate = inp.value ? new Date(inp.value + 'T00:00:00') : new Date();
+            baseDate.setDate(baseDate.getDate() + offsetDays);
+            const nextStr = baseDate.toISOString().split('T')[0];
+            inp.value = nextStr;
+            document.getElementById('ctMonthFilter').value = nextStr.slice(0, 7);
+            document.getElementById('ctDate').value = nextStr;
+            refreshChiTieuUI();
+        };
+
+        window.setChiTieuDayToday = (offsetDays = 0) => {
+            const d = new Date();
+            d.setDate(d.getDate() + offsetDays);
+            const dateStr = d.toISOString().split('T')[0];
+            document.getElementById('ctDayFilter').value = dateStr;
+            document.getElementById('ctMonthFilter').value = dateStr.slice(0, 7);
+            document.getElementById('ctDate').value = dateStr;
+            refreshChiTieuUI();
+        };
+
+        window.clearChiTieuDayFilter = () => {
+            document.getElementById('ctDayFilter').value = '';
+            refreshChiTieuUI();
+            showToast('Đang hiển thị toàn bộ giao dịch trong tháng');
         };
 
         function updateTierCardUI(prefix, spent, limit, unitLabel) {
@@ -2089,16 +2377,105 @@
 
         function refreshChiTieuUI() {
             const monthVal = document.getElementById('ctMonthFilter').value;
+            const dayFilterVal = document.getElementById('ctDayFilter')?.value || '';
             const searchQ = (document.getElementById('ctSearchInput').value || '').toLowerCase();
 
             const todayStr = new Date().toISOString().split('T')[0];
-            const statsToday = computeSpendingStats(todayStr);
+            const activeRefDate = dayFilterVal || todayStr;
+            const statsActiveDay = computeSpendingStats(activeRefDate);
 
+            // Tính toán chi tiết cho Ngày đang chọn trên thanh lọc ngày
+            let dayGasSpent = 0;
+            let dayOtherSpent = 0;
+            let dayIncomeTotal = 0;
+            let dayTxCount = 0;
+
+            chiTieuList.forEach(tx => {
+                if (tx.date === activeRefDate) {
+                    dayTxCount++;
+                    const amt = Number(tx.amount) || 0;
+                    if (tx.type === 'income') {
+                        dayIncomeTotal += amt;
+                    } else {
+                        if (tx.category === 'Xăng xe') dayGasSpent += amt;
+                        else dayOtherSpent += amt;
+                    }
+                }
+            });
+
+            const dLimit = userSettings.dailyLimit || 150000;
+            const wLimit = userSettings.weeklyLimit || 1000000;
+            const mLimit = userSettings.monthlyLimit || 4000000;
+
+            // Cập nhật khu vực KPI Ngày đang chọn
+            const dayTotalSpent = dayGasSpent + dayOtherSpent;
+            const isTodaySelected = activeRefDate === todayStr;
+            const labelDayTitleEl = document.getElementById('labelBudgetDayTitle');
+            if (labelDayTitleEl) {
+                labelDayTitleEl.textContent = isTodaySelected ? 'Chi tiêu Hôm nay' : `Chi tiêu Ngày ${formatDate(activeRefDate)}`;
+            }
+
+            const selTitleEl = document.getElementById('selectedDateLabelTitle');
+            if (selTitleEl) {
+                selTitleEl.textContent = `TỔNG CHI NGÀY ${formatDate(activeRefDate)}${isTodaySelected ? ' (HÔM NAY)' : ''}`;
+            }
+            const selTotalEl = document.getElementById('selectedDateTotalExpense');
+            if (selTotalEl) selTotalEl.textContent = formatVND(dayTotalSpent);
+
+            const selSubEl = document.getElementById('selectedDateStatusSub');
+            if (selSubEl) {
+                if (dayTotalSpent > dLimit) {
+                    selSubEl.textContent = `🚨 Vượt định mức 150k (+${formatVND(dayTotalSpent - dLimit)})`;
+                    selSubEl.className = 'text-[11px] font-extrabold text-rose-600 mt-0.5';
+                } else {
+                    selSubEl.textContent = `✅ Trong hạn mức (Còn trống ${formatVND(dLimit - dayTotalSpent)})`;
+                    selSubEl.className = 'text-[11px] font-semibold text-emerald-600 mt-0.5';
+                }
+            }
+
+            const selGasEl = document.getElementById('selectedDateGasExpense');
+            if (selGasEl) selGasEl.textContent = formatVND(dayGasSpent);
+            const selOtherEl = document.getElementById('selectedDateOtherExpense');
+            if (selOtherEl) selOtherEl.textContent = `Chi khác: ${formatVND(dayOtherSpent)}`;
+            const selIncEl = document.getElementById('selectedDateIncome');
+            if (selIncEl) selIncEl.textContent = '+' + formatVND(dayIncomeTotal);
+            const selCntEl = document.getElementById('selectedDateTxCount');
+            if (selCntEl) selCntEl.textContent = `${dayTxCount} giao dịch trong ngày`;
+
+            const modeBadge = document.getElementById('dailyFilterModeBadge');
+            if (modeBadge) {
+                if (dayFilterVal) {
+                    modeBadge.textContent = `Đang xem ngày ${formatDate(dayFilterVal)}`;
+                    modeBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800';
+                } else {
+                    modeBadge.textContent = `Đang xem cả tháng ${monthVal}`;
+                    modeBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800';
+                }
+            }
+
+            // Lọc danh sách theo Tháng (để vẽ biểu đồ tháng) và theo Ngày (nếu đang chọn ngày)
             const monthItems = chiTieuList.filter(item => {
                 if (monthVal && !(item.date || '').startsWith(monthVal)) return false;
                 if (searchQ && !(`${item.name} ${item.category}`.toLowerCase().includes(searchQ))) return false;
                 return true;
             });
+
+            const displayedHistoryItems = monthItems.filter(item => {
+                if (dayFilterVal && item.date !== dayFilterVal) return false;
+                return true;
+            });
+
+            const historyTitleEl = document.getElementById('historyListHeaderTitle');
+            const historySubEl = document.getElementById('historyListSubTitle');
+            if (historyTitleEl && historySubEl) {
+                if (dayFilterVal) {
+                    historyTitleEl.textContent = `Giao dịch trong ngày ${formatDate(dayFilterVal)} (${displayedHistoryItems.length} khoản)`;
+                    historySubEl.textContent = `Bấm nút "Xem cả tháng" ở phía trên nếu muốn xem toàn bộ tháng ${monthVal}`;
+                } else {
+                    historyTitleEl.textContent = `Lịch sử giao dịch cả tháng ${monthVal} (${displayedHistoryItems.length} khoản)`;
+                    historySubEl.textContent = `Chọn 1 ngày trên thanh "Xem Chi Tiêu Theo Ngày" để lọc riêng từng ngày`;
+                }
+            }
 
             let totalIncome = 0, totalExpense = 0;
             const catMap = {};
@@ -2124,17 +2501,13 @@
             document.getElementById('ctTotalIncome').textContent = '+' + formatVND(totalIncome);
             document.getElementById('ctTotalExpense').textContent = '-' + formatVND(totalExpense);
 
-            const dLimit = userSettings.dailyLimit || 150000;
-            const wLimit = userSettings.weeklyLimit || 1000000;
-            const mLimit = userSettings.monthlyLimit || 4000000;
-
-            document.getElementById('spentTodayText').textContent = formatVND(statsToday.spentDay);
+            document.getElementById('spentTodayText').textContent = formatVND(statsActiveDay.spentDay);
             document.getElementById('limitTodayText').textContent = formatVND(dLimit);
-            updateTierCardUI('Day', statsToday.spentDay, dLimit, 'ngày');
+            updateTierCardUI('Day', statsActiveDay.spentDay, dLimit, 'ngày');
 
-            document.getElementById('spentWeekText').textContent = formatVND(statsToday.spentWeek);
+            document.getElementById('spentWeekText').textContent = formatVND(statsActiveDay.spentWeek);
             document.getElementById('limitWeekText').textContent = formatVND(wLimit);
-            updateTierCardUI('Week', statsToday.spentWeek, wLimit, 'tuần');
+            updateTierCardUI('Week', statsActiveDay.spentWeek, wLimit, 'tuần');
 
             document.getElementById('spentMonthText').textContent = formatVND(fullSelectedMonthExpense);
             document.getElementById('limitMonthText').textContent = formatVND(mLimit);
@@ -2146,14 +2519,14 @@
             const statusText = document.getElementById('budgetAlertText');
             const warnings = [];
 
-            if (statsToday.spentDay > dLimit) {
-                warnings.push(`<li><b>Hôm nay (${formatDate(todayStr)}):</b> Đã tiêu <b>${formatVND(statsToday.spentDay)}</b> — Lố mất <b>+${formatVND(statsToday.spentDay - dLimit)}</b> rồi, tối nay uống nước lọc đi ngủ nhé!</li>`);
+            if (statsActiveDay.spentDay > dLimit) {
+                warnings.push(`<li><b>Ngày (${formatDate(activeRefDate)}):</b> Đã tiêu <b>${formatVND(statsActiveDay.spentDay)}</b> — Lố mất <b>+${formatVND(statsActiveDay.spentDay - dLimit)}</b> rồi, tối nay uống nước lọc đi ngủ nhé!</li>`);
             }
-            if (statsToday.spentWeek > 150000 && statsToday.spentWeek <= wLimit) {
-                warnings.push(`<li><b>Báo động nhẹ tuần này:</b> Mới đó mà tuần này đã tiêu <b>${formatVND(statsToday.spentWeek)}</b> (vượt mốc 150k rồi đó!). Nhớ khâu bớt túi quần lại nha!</li>`);
+            if (statsActiveDay.spentWeek > 150000 && statsActiveDay.spentWeek <= wLimit) {
+                warnings.push(`<li><b>Báo động nhẹ tuần này:</b> Mới đó mà tuần này đã tiêu <b>${formatVND(statsActiveDay.spentWeek)}</b> (vượt mốc 150k rồi đó!). Nhớ khâu bớt túi quần lại nha!</li>`);
             }
-            if (statsToday.spentWeek > wLimit) {
-                warnings.push(`<li><b>Tuần này toang nặng:</b> Đã đốt <b>${formatVND(statsToday.spentWeek)}</b> — Vượt trần tuần (${formatVND(wLimit)}) tới <b>+${formatVND(statsToday.spentWeek - wLimit)}</b>! Chuẩn bị ăn mì tôm cả tuần!</li>`);
+            if (statsActiveDay.spentWeek > wLimit) {
+                warnings.push(`<li><b>Tuần này toang nặng:</b> Đã đốt <b>${formatVND(statsActiveDay.spentWeek)}</b> — Vượt trần tuần (${formatVND(wLimit)}) tới <b>+${formatVND(statsActiveDay.spentWeek - wLimit)}</b>! Chuẩn bị ăn mì tôm cả tuần!</li>`);
             }
             if (fullSelectedMonthExpense > mLimit) {
                 warnings.push(`<li><b>Tháng (${monthVal}) bất lực:</b> Đã tiêu <b>${formatVND(fullSelectedMonthExpense)}</b> — Vượt định mức tháng (${formatVND(mLimit)}) tận <b>+${formatVND(fullSelectedMonthExpense - mLimit)}</b>!</li>`);
@@ -2229,10 +2602,12 @@
             }
 
             const listEl = document.getElementById('listChiTieu');
-            if (!monthItems.length) {
-                listEl.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">Chưa có giao dịch nào trong tháng này.</div>`;
+            if (!displayedHistoryItems.length) {
+                listEl.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">
+                    ${dayFilterVal ? `Chưa có giao dịch nào trong ngày <b>${formatDate(dayFilterVal)}</b>.` : 'Chưa có giao dịch nào trong tháng này.'}
+                </div>`;
             } else {
-                listEl.innerHTML = monthItems.map(item => `
+                listEl.innerHTML = displayedHistoryItems.map(item => `
                     <div class="p-3.5 sm:p-4 flex items-center justify-between hover:bg-slate-50 transition">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${item.type === 'income' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
@@ -2688,9 +3063,9 @@
         // 8. TAB TKB & ĐỒNG HỒ TIẾT HỌC
         // ============================================================================
         const TKB_SESSIONS = [
-            { name: 'Sáng', time: '7:00–10:00' },
-            { name: 'Chiều', time: '13:30–16:00' },
-            { name: 'Tối', time: '18:00–21:30' }
+            { name: 'Sáng', time: '7:00–10:00', start: '070000', end: '100000' },
+            { name: 'Chiều', time: '13:30–16:00', start: '133000', end: '160000' },
+            { name: 'Tối', time: '18:00–21:30', start: '180000', end: '213000' }
         ];
 
         let currentTkbWeekStart = getMonday(new Date());
@@ -2731,6 +3106,7 @@
                 rateInp.readOnly = false;
                 rateInp.classList.remove('bg-slate-100');
                 if (Number(rateInp.value) === 50000) rateInp.value = 0;
+                rateInp.focus();
             }
         };
 
@@ -2752,7 +3128,9 @@
             const dateStr = document.getElementById('tkbQuickDate').value;
             const sIdx = document.getElementById('tkbQuickSession').value;
             const subject = document.getElementById('tkbQuickSubject').value.trim();
+            const course = document.getElementById('tkbQuickCourse').value.trim();
             const center = document.getElementById('tkbQuickCenter').value.trim();
+            const owner = document.getElementById('tkbQuickOwner').value.trim();
             const mode = document.getElementById('tkbQuickType').value;
             const rate = mode === 'offline' ? 50000 : (Number(document.getElementById('tkbQuickRate').value) || 0);
 
@@ -2763,17 +3141,19 @@
 
             const key = `${dateStr}_${sIdx}`;
             if (!tkbMap) tkbMap = {};
-            tkbMap[key] = { subject, center, session: sIdx, mode, rate };
+            tkbMap[key] = { subject, course, center, owner, session: sIdx, mode, rate };
 
             saveUserCollection('tkb', tkbMap);
             document.getElementById('tkbQuickSubject').value = '';
+            document.getElementById('tkbQuickCourse').value = '';
             document.getElementById('tkbQuickCenter').value = '';
+            document.getElementById('tkbQuickOwner').value = '';
             
             // Jump to the added date's week
             currentTkbWeekStart = getMonday(new Date(dateStr));
             refreshTkbUI();
             refreshTkbStats();
-            showToast(`Đã thêm TKB vào ngày ${dateStr}!`);
+            showToast(`Đã thêm TKB vào ngày ${formatDate(dateStr)}!`);
         });
 
         window.refreshTkbStats = () => {
@@ -2802,6 +3182,139 @@
             document.getElementById('tkbMonthGas').textContent = formatVND(totalGas);
         };
 
+        // Tạo link Google Calendar cho 1 ca dạy trên TKB
+        function buildTkbGoogleCalendarUrl(dateStr, sIdx, entry) {
+            const sess = TKB_SESSIONS[sIdx] || TKB_SESSIONS[0];
+            const dateCompact = (dateStr || '').replace(/-/g, '');
+            const courseTag = entry.course ? ` [${entry.course}]` : '';
+            const ownerTag = entry.owner ? ` (Lịch của: ${entry.owner})` : '';
+            const modeLabel = entry.mode === 'offline' ? 'Offline' : (entry.mode === 'online' ? 'Online' : 'Gác thi');
+
+            const title = encodeURIComponent(`[${modeLabel}] ${entry.subject}${courseTag} - ${entry.center}`);
+            const details = encodeURIComponent(
+                `📘 Môn: ${entry.subject}\n` +
+                (entry.course ? `👥 Khóa/Lớp: ${entry.course}\n` : '') +
+                `🏫 Trung tâm/Trường: ${entry.center}\n` +
+                (entry.owner ? `👤 Lịch của: ${entry.owner}\n` : '') +
+                `💰 Thù lao: ${formatRawVND(entry.rate || 0)}`
+            );
+            const location = encodeURIComponent(entry.center || '');
+            return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateCompact}T${sess.start}/${dateCompact}T${sess.end}&details=${details}&location=${location}`;
+        }
+
+        window.addSingleTkbToGoogleCalendar = (event, dateStr, sIdx) => {
+            if (event) event.stopPropagation();
+            const key = `${dateStr}_${sIdx}`;
+            const entry = tkbMap ? tkbMap[key] : null;
+            if (!entry) return;
+            const url = buildTkbGoogleCalendarUrl(dateStr, sIdx, entry);
+            window.open(url, '_blank');
+        };
+
+        // Thu thập toàn bộ ca dạy của tuần đang xem
+        function getCurrentWeekTkbEntries() {
+            const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+            const list = [];
+            for (let i = 0; i < 7; i++) {
+                let d = new Date(currentTkbWeekStart);
+                d.setDate(d.getDate() + i);
+                const dateStr = d.toISOString().split('T')[0];
+
+                TKB_SESSIONS.forEach((sess, sIdx) => {
+                    const key = `${dateStr}_${sIdx}`;
+                    const entry = tkbMap ? tkbMap[key] : null;
+                    if (entry && entry.subject) {
+                        list.push({
+                            dateStr,
+                            dayLabel: dayNames[i],
+                            sIdx,
+                            sess,
+                            entry
+                        });
+                    }
+                });
+            }
+            return list;
+        }
+
+        window.openWeekCalendarSyncModal = () => {
+            const entries = getCurrentWeekTkbEntries();
+            if (!entries.length) {
+                showToast('Tuần này chưa có ca dạy nào trên TKB để đồng bộ!', true);
+                return;
+            }
+            const listEl = document.getElementById('weekCalDirectLinksList');
+            listEl.innerHTML = entries.map(item => {
+                const url = buildTkbGoogleCalendarUrl(item.dateStr, item.sIdx, item.entry);
+                return `
+                    <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50/70 flex items-center justify-between gap-2">
+                        <div class="text-xs">
+                            <div class="font-bold text-slate-900">
+                                ${item.dayLabel} (${formatDate(item.dateStr)}) • Ca ${item.sess.name}
+                            </div>
+                            <div class="text-slate-600 mt-0.5">
+                                📘 <b>${escapeHtml(item.entry.subject)}</b>
+                                ${item.entry.course ? ` • 👥 Khóa: <b>${escapeHtml(item.entry.course)}</b>` : ''}
+                                • 🏫 ${escapeHtml(item.entry.center)}
+                                ${item.entry.owner ? ` • 👤 Lịch của: <b>${escapeHtml(item.entry.owner)}</b>` : ''}
+                            </div>
+                        </div>
+                        <a href="${url}" target="_blank" class="shrink-0 px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm">
+                            <span>+ Mở GG Cal</span>
+                        </a>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('weekCalModal').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeWeekCalendarSyncModal = () => {
+            document.getElementById('weekCalModal').classList.add('hidden');
+        };
+
+        window.downloadWeekIcsFile = () => {
+            const entries = getCurrentWeekTkbEntries();
+            if (!entries.length) {
+                showToast('Tuần này chưa có lịch dạy nào!', true);
+                return;
+            }
+            const lines = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//GiaoVienBatOn//TKB//VI',
+                'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH'
+            ];
+
+            entries.forEach((item, idx) => {
+                const dCompact = item.dateStr.replace(/-/g, '');
+                const coursePart = item.entry.course ? ` [Khóa: ${item.entry.course}]` : '';
+                const ownerPart = item.entry.owner ? ` (Lịch của: ${item.entry.owner})` : '';
+                const summary = `[${item.entry.mode.toUpperCase()}] ${item.entry.subject}${coursePart} - ${item.entry.center}`;
+                const desc = `Môn: ${item.entry.subject}\\nKhóa: ${item.entry.course || 'Không ghi'}\\nTrung tâm: ${item.entry.center}\\nLịch của: ${item.entry.owner || 'Cá nhân'}\\nThù lao: ${formatRawVND(item.entry.rate || 0)}`;
+
+                lines.push('BEGIN:VEVENT');
+                lines.push(`UID:tkb-${dCompact}-${item.sIdx}-${idx}@giaovienbaton`);
+                lines.push(`DTSTAMP:${dCompact}T000000Z`);
+                lines.push(`DTSTART;TZID=Asia/Ho_Chi_Minh:${dCompact}T${item.sess.start}`);
+                lines.push(`DTEND;TZID=Asia/Ho_Chi_Minh:${dCompact}T${item.sess.end}`);
+                lines.push(`SUMMARY:${summary}`);
+                lines.push(`LOCATION:${item.entry.center || ''}`);
+                lines.push(`DESCRIPTION:${desc}${ownerPart}`);
+                lines.push('END:VEVENT');
+            });
+
+            lines.push('END:VCALENDAR');
+            const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Lich_Day_Tuan_${currentTkbWeekStart.toISOString().slice(0,10)}.ics`;
+            link.click();
+            showToast('Đã tải file lịch tuần (.ics)! Hãy mở file để thêm toàn bộ vào Lịch.');
+        };
+
         window.copyTkbZalo = () => {
             const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
             let result = `📅 LỊCH TRỐNG / DẠY TUẦN NÀY (${formatDate(currentTkbWeekStart.toISOString().split('T')[0])}):\n`;
@@ -2818,7 +3331,9 @@
                     const entry = tkbMap ? tkbMap[key] : null;
                     if (entry && entry.subject) {
                         const type = entry.mode === 'offline' ? '🏫' : (entry.mode === 'online' ? '💻' : '📝');
-                        dayEntries.push(`  • ${sess.name}: ${entry.subject} (${entry.center}) ${type}`);
+                        const courseStr = entry.course ? ` [Khóa: ${entry.course}]` : '';
+                        const ownerStr = entry.owner ? ` (Lịch của: ${entry.owner})` : '';
+                        dayEntries.push(`  • ${sess.name}: ${entry.subject}${courseStr} - ${entry.center}${ownerStr} ${type}`);
                     }
                 });
 
@@ -2847,11 +3362,25 @@
             const bodyEl = document.getElementById('tkbGridBody');
             if (!headEl || !bodyEl) return;
 
+            // Gợi ý tự động cho ô Khóa và Lịch của
+            const courseSet = new Set();
+            const ownerSet = new Set();
+            if (tkbMap) {
+                Object.values(tkbMap).forEach(v => {
+                    if (v && v.course) courseSet.add(v.course);
+                    if (v && v.owner) ownerSet.add(v.owner);
+                });
+            }
+            const courseDl = document.getElementById('courseSuggestions');
+            if (courseDl) courseDl.innerHTML = [...courseSet].map(c => `<option value="${escapeHtml(c)}">`).join('');
+            const ownerDl = document.getElementById('ownerSuggestions');
+            if (ownerDl) ownerDl.innerHTML = [...ownerSet].map(o => `<option value="${escapeHtml(o)}">`).join('');
+
             const dayNames = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
             const weekDates = [];
             const todayStr = new Date().toISOString().split('T')[0];
 
-            let theadHtml = `<tr class="bg-gradient-to-r from-sky-600 to-sky-800 text-white text-xs font-bold border-b border-sky-900">
+            let theadHtml = `<tr class="bg-gradient-to-r from-sky-700 via-sky-600 to-cyan-700 text-white text-xs font-bold border-b border-sky-900">
                 <th class="py-3 px-2 border-r border-sky-500/40 w-24 text-center whitespace-nowrap">Buổi / Ca</th>`;
 
             for (let i = 0; i < 7; i++) {
@@ -2865,8 +3394,8 @@
                 
                 theadHtml += `<th class="py-3 px-2 border-r border-sky-500/40 text-center ${isToday ? 'bg-sky-400 text-white shadow-inner' : ''}">
                     <div class="text-sm">${dayNames[i]}</div>
-                    <div class="text-[10px] font-medium mt-0.5 ${isToday ? 'text-sky-50' : 'text-sky-200/80'}">
-                        ${displayDate} ${isToday ? '<span class="bg-white text-sky-600 px-1.5 py-0.5 rounded-md ml-1 font-bold shadow-sm">Hôm nay</span>' : ''}
+                    <div class="text-[10px] font-medium mt-0.5 ${isToday ? 'text-sky-50' : 'text-sky-100/90'}">
+                        ${displayDate} ${isToday ? '<span class="bg-white text-sky-700 px-1.5 py-0.5 rounded-md ml-1 font-extrabold shadow-sm">Hôm nay</span>' : ''}
                     </div>
                 </th>`;
             }
@@ -2879,8 +3408,8 @@
 
             TKB_SESSIONS.forEach((sess, sIdx) => {
                 tbodyHtml += `<tr class="border-b border-slate-200">
-                    <td class="py-4 px-2 border-r border-slate-200 text-center align-middle bg-slate-50 w-24 shrink-0">
-                        <div class="font-bold text-slate-800 text-sm">${sess.name}</div>
+                    <td class="py-4 px-2 border-r border-slate-200 text-center align-middle bg-sky-50/40 w-24 shrink-0">
+                        <div class="font-bold text-sky-950 text-sm">${sess.name}</div>
                         <div class="text-[10px] text-slate-500 mt-1 whitespace-nowrap">${sess.time}</div>
                     </td>`;
 
@@ -2894,37 +3423,60 @@
                         weekExpectedIncome += Number(entry.rate) || 0;
 
                         let modeLabel = 'Offline';
-                        let modeColor = 'bg-emerald-100 text-emerald-700';
-                        let cardStyle = 'bg-emerald-50/60 border-emerald-300';
+                        let modeColor = 'bg-sky-100 text-sky-800';
+                        let cardStyle = 'bg-sky-50/75 border-sky-300 hover:border-sky-500';
                         
                         if (entry.mode === 'online') { 
                             modeLabel = 'Online'; 
                             modeColor = 'bg-violet-100 text-violet-700';
-                            cardStyle = 'bg-violet-50/60 border-violet-300';
+                            cardStyle = 'bg-violet-50/70 border-violet-300 hover:border-violet-500';
                         }
                         if (entry.mode === 'gacthi') { 
                             modeLabel = 'Gác thi'; 
-                            modeColor = 'bg-orange-100 text-orange-700';
-                            cardStyle = 'bg-orange-50/60 border-orange-300';
+                            modeColor = 'bg-amber-100 text-amber-800';
+                            cardStyle = 'bg-amber-50/70 border-amber-300 hover:border-amber-500';
                         }
 
                         tbodyHtml += `
-                        <td class="p-2 border-r border-slate-200 align-top min-w-[120px]">
-                            <div class="rounded-xl border shadow-sm p-2.5 text-left h-full flex flex-col cursor-pointer hover:shadow-md transition relative group ${cardStyle}" onclick="openTkbSlotModal('${dateStr}', ${sIdx})">
-                                <div class="font-bold text-slate-800 text-xs leading-tight mb-1 flex items-start gap-1">
-                                    <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-600"></i> <span>${escapeHtml(entry.subject)}</span>
+                        <td class="p-2 border-r border-slate-200 align-top min-w-[145px]">
+                            <div class="rounded-2xl border shadow-sm p-2.5 text-left h-full flex flex-col cursor-pointer hover:shadow-md transition relative group ${cardStyle}" onclick="openTkbSlotModal('${dateStr}', ${sIdx})">
+                                <div class="font-bold text-slate-900 text-xs leading-snug mb-1 flex items-start justify-between gap-1">
+                                    <span class="flex items-start gap-1">
+                                        <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0 mt-0.5 text-sky-600"></i>
+                                        <span>${escapeHtml(entry.subject)}</span>
+                                    </span>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-sky-600 text-white shrink-0">${sess.name}</span>
                                 </div>
-                                <div class="text-[10px] text-slate-600 mb-1.5 line-clamp-2 flex gap-1">
-                                    <i data-lucide="building-2" class="w-3 h-3 shrink-0 mt-0.5"></i> <span>${escapeHtml(entry.center)}</span>
+
+                                ${entry.course ? `
+                                <div class="text-[11px] font-bold text-amber-800 mb-1 flex items-center gap-1">
+                                    <i data-lucide="users" class="w-3 h-3 shrink-0 text-amber-600"></i>
+                                    <span>Khóa: ${escapeHtml(entry.course)}</span>
+                                </div>` : ''}
+
+                                <div class="text-[10px] text-slate-600 mb-1 line-clamp-2 flex items-start gap-1">
+                                    <i data-lucide="building-2" class="w-3 h-3 shrink-0 mt-0.5 text-slate-500"></i>
+                                    <span>${escapeHtml(entry.center)}</span>
                                 </div>
-                                <div class="mt-auto pt-2 flex items-center justify-between border-t border-slate-200/50">
+
+                                ${entry.owner ? `
+                                <div class="text-[10px] font-semibold text-indigo-700 bg-white/80 border border-indigo-100 px-1.5 py-0.5 rounded-md mb-1.5 inline-flex items-center gap-1 w-fit">
+                                    <i data-lucide="user-check" class="w-3 h-3 shrink-0 text-indigo-600"></i>
+                                    <span>Lịch của: ${escapeHtml(entry.owner)}</span>
+                                </div>` : ''}
+
+                                <div class="mt-auto pt-2 flex items-center justify-between border-t border-slate-200/60 gap-1">
                                     <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${modeColor} uppercase">${modeLabel}</span>
-                                    <span class="text-[10px] font-extrabold text-slate-800">${formatRawVND(entry.rate)}</span>
+                                    <span class="text-[10px] font-extrabold text-emerald-700">${formatRawVND(entry.rate)}</span>
                                 </div>
+
+                                <button type="button" onclick="addSingleTkbToGoogleCalendar(event, '${dateStr}', ${sIdx})" class="mt-1.5 w-full py-1 px-2 rounded-lg bg-white hover:bg-sky-600 text-sky-700 hover:text-white border border-sky-200 text-[10px] font-bold flex items-center justify-center gap-1 transition shadow-sm">
+                                    <i data-lucide="calendar-plus" class="w-3 h-3"></i> +GG Calendar
+                                </button>
                             </div>
                         </td>`;
                     } else {
-                        tbodyHtml += `<td class="p-2 border-r border-slate-200 align-middle text-center cursor-pointer hover:bg-slate-50 transition" onclick="openTkbSlotModal('${dateStr}', ${sIdx})">
+                        tbodyHtml += `<td class="p-2 border-r border-slate-200 align-middle text-center cursor-pointer hover:bg-sky-50/40 transition" onclick="openTkbSlotModal('${dateStr}', ${sIdx})">
                             <span class="text-slate-300">—</span>
                         </td>`;
                     }
@@ -2955,9 +3507,11 @@
             document.getElementById('tkbModalDateLabel').textContent = `Ngày ${displayDate} • Ca ${TKB_SESSIONS[sIdx].name}`;
 
             const entry = tkbMap ? tkbMap[key] : null;
-            document.getElementById('tkbEditSubject').value = entry ? entry.subject : '';
-            document.getElementById('tkbEditCenter').value = entry ? entry.center : '';
-            document.getElementById('tkbEditType').value = entry ? entry.mode : 'offline';
+            document.getElementById('tkbEditSubject').value = entry ? (entry.subject || '') : '';
+            document.getElementById('tkbEditCourse').value = entry ? (entry.course || '') : '';
+            document.getElementById('tkbEditOwner').value = entry ? (entry.owner || '') : '';
+            document.getElementById('tkbEditCenter').value = entry ? (entry.center || '') : '';
+            document.getElementById('tkbEditType').value = entry ? (entry.mode || 'offline') : 'offline';
             onModalTkbTypeChange();
             if (entry && entry.mode !== 'offline') {
                 document.getElementById('tkbEditRate').value = entry.rate || 0;
@@ -2987,13 +3541,15 @@
             const key = `${dateStr}_${sIdx}`;
 
             const subject = document.getElementById('tkbEditSubject').value.trim();
+            const course = document.getElementById('tkbEditCourse').value.trim();
+            const owner = document.getElementById('tkbEditOwner').value.trim();
             const center = document.getElementById('tkbEditCenter').value.trim();
             const mode = document.getElementById('tkbEditType').value;
             const rate = mode === 'offline' ? 50000 : (Number(document.getElementById('tkbEditRate').value) || 0);
 
             if (!tkbMap) tkbMap = {};
             if (subject || center) {
-                tkbMap[key] = { subject, center, session: sIdx, mode, rate };
+                tkbMap[key] = { subject, course, owner, center, session: sIdx, mode, rate };
             } else {
                 delete tkbMap[key];
             }
@@ -3088,6 +3644,7 @@
             document.getElementById('dtDate').value = today;
             document.getElementById('ctDate').value = today;
             document.getElementById('ctMonthFilter').value = today.slice(0, 7);
+            if(document.getElementById('ctDayFilter')) document.getElementById('ctDayFilter').value = today;
             
             if(document.getElementById('tkbQuickDate')) document.getElementById('tkbQuickDate').value = today;
             if(document.getElementById('tkbStatsMonth')) document.getElementById('tkbStatsMonth').value = today.slice(0, 7);
