@@ -11,6 +11,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase Compat SDKs (Đảm bảo tải đồng bộ 100% trên cả iPhone Safari, Android & Laptop) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -118,16 +121,42 @@
                 <h2 id="authTitle" class="text-xl sm:text-2xl font-display font-extrabold text-slate-900 tracking-tight leading-snug uppercase">
                     GIÁO VIÊN BẤT ỔN<br><span class="text-sky-600">TÀI CHÍNH BẤT LỰC</span>
                 </h2>
+                <!-- Live Cloud Sync Status Badge on Login Screen (Hidden per user request) -->
+                <div class="hidden mt-2.5 flex-col items-center gap-1.5">
+                    <div id="authCloudStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                        <span>Đang kết nối Firebase Cloud...</span>
+                    </div>
+                    <button type="button" onclick="forceSyncAndVerifyCloud()" class="text-[11px] font-extrabold text-sky-700 hover:text-sky-900 underline flex items-center gap-1">
+                        ☁️ Quét & Đồng bộ tài khoản từ máy này lên Cloud
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cảnh báo nếu Firebase Rules đang chặn (permission-denied) -->
+            <div id="firebaseRuleWarningBox" class="hidden p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 text-xs space-y-1.5">
+                <div class="font-extrabold text-rose-700 flex items-center gap-1.5">
+                    <span>🚨</span>
+                    <span>FIREBASE ĐANG BỊ KHÓA QUYỀN GHI (RULES = FALSE)!</span>
+                </div>
+                <p class="leading-relaxed">Tài khoản trên máy tính chưa đẩy lên mây được vì bạn chưa mở khóa Rules trên Firebase.</p>
+                <div class="bg-white p-2 rounded-xl border border-rose-200 font-mono text-[11px] text-slate-800">
+                    Vào <b>Firebase Console &rarr; Firestore Database &rarr; Tab Rules</b>, sửa dòng:<br>
+                    <code class="text-rose-600 font-bold">allow read, write: if false;</code><br>
+                    thành:<br>
+                    <code class="text-emerald-600 font-bold">allow read, write: if true;</code><br>
+                    rồi bấm nút <b>Publish</b>!
+                </div>
             </div>
 
             <form id="authForm" class="space-y-4">
                 <div id="nameFieldWrap" class="hidden">
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Họ và tên hiển thị</label>
-                    <input type="text" id="authName" placeholder="VD: Cô Minh Anh" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
+                    <input type="text" id="authName" placeholder="VD: Thảo Nguyên" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Email tài khoản</label>
-                    <input type="email" id="authEmail" required placeholder="nhap.email@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Tên đăng nhập hoặc Email *</label>
+                    <input type="text" id="authEmail" required autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="hãy nhập gmail đã đăng ký" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100">
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Mật khẩu</label>
@@ -151,7 +180,7 @@
 
             <!-- Quick Saved Accounts -->
             <div id="savedAccountsBox" class="hidden pt-2 border-t border-slate-100">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Tài khoản đã lưu trên máy này:</p>
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Tài khoản đã lưu trên thiết bị này (Bấm để điền nhanh):</p>
                 <div id="savedAccountsList" class="flex flex-wrap gap-1.5"></div>
             </div>
 
@@ -192,6 +221,12 @@
                 </div>
                 
                 <div class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- Cloud Sync Live Button in Header -->
+                    <button onclick="forceSyncAndVerifyCloud()" id="headerCloudBtn" class="p-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200/80 transition flex items-center gap-1.5 text-xs font-extrabold" title="Bấm để đồng bộ ngay lập tức với Firebase Cloud">
+                        <span id="headerCloudDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span id="headerCloudText" class="hidden sm:inline">Đã đồng bộ Cloud</span>
+                    </button>
+
                     <!-- Class Timer 45m Quick Button -->
                     <button onclick="openTimerModal()" class="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 transition flex items-center gap-1.5 text-xs font-bold" title="Đồng hồ canh tiết học 45p / kiểm tra">
                         <i data-lucide="timer" class="w-4 h-4"></i>
@@ -764,11 +799,14 @@
                 <!-- TKB Stats Summary -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="card-premium rounded-2xl p-4 flex items-center justify-between">
-                        <div>
-                            <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tiền Xăng (Tháng)</div>
-                            <div class="text-xl font-display font-extrabold text-rose-600 mt-1" id="tkbMonthGas">0 ₫</div>
-                            <div class="text-[10px] font-bold text-emerald-600 mt-1.5 bg-emerald-50 px-2 py-0.5 rounded-md inline-block border border-emerald-100">
-                                Thu nhập TKB: <span id="tkbMonthIncome">0 ₫</span>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Tiền Xăng (Tháng)</span>
+                                <input type="month" id="tkbStatsMonth" onchange="refreshTkbStats()" class="px-2 py-0.5 rounded-lg border border-slate-200 text-[11px] font-bold text-sky-700 bg-sky-50/50 outline-none focus:border-sky-600">
+                            </div>
+                            <div class="text-xl font-display font-extrabold text-rose-600" id="tkbMonthGas">0 ₫</div>
+                            <div class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg inline-block border border-emerald-200">
+                                💰 Thu nhập TKB tháng này: <span id="tkbMonthIncome">0 ₫</span>
                             </div>
                         </div>
                         <div class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 shrink-0"><i data-lucide="fuel" class="w-5 h-5"></i></div>
@@ -777,6 +815,7 @@
                         <div>
                             <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Số buổi dạy tuần này</div>
                             <div class="text-xl font-display font-extrabold text-indigo-600 mt-1" id="tkbWeekSessions">0 buổi</div>
+                            <div class="text-[11px] font-semibold text-slate-400 mt-0.5">Tự động đếm theo tuần đang xem</div>
                         </div>
                         <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0"><i data-lucide="book-open" class="w-5 h-5"></i></div>
                     </div>
@@ -789,11 +828,7 @@
                             <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
                                 <i data-lucide="calendar-plus" class="w-5 h-5 text-sky-600"></i> Nhập Lên Thời Khóa Biểu (TKB)
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Điền <b>Ngày</b>, <b>Buổi</b>, <b>Môn</b>, <b>Khóa</b>, <b>Lịch của</b> (tùy chọn) và chọn <b>Hình thức</b>.</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-bold text-slate-600">Thống kê tháng:</label>
-                            <input type="month" id="tkbStatsMonth" onchange="refreshTkbStats()" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold outline-none focus:border-sky-600">
+                            <p class="text-xs text-slate-500 mt-0.5">Chọn <b>Ngày</b> (để điền TKB tuần này hoặc các tuần trước), <b>Buổi</b>, <b>Môn</b>, <b>Khóa</b>, <b>Lịch của</b> (tùy chọn) và <b>Hình thức</b>.</p>
                         </div>
                     </div>
 
@@ -832,14 +867,14 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức *</label>
                             <select id="tkbQuickType" onchange="onQuickTkbTypeChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white outline-none focus:border-sky-600 font-bold text-indigo-700">
-                                <option value="offline">🏫 Offline (50k)</option>
-                                <option value="online">💻 Online</option>
-                                <option value="gacthi">📝 Gác thi</option>
+                                <option value="offline">🏫 Offline (50k/buổi)</option>
+                                <option value="online">💻 Online (Tự nhập)</option>
+                                <option value="gacthi">📝 Gác thi (Tự nhập tiền)</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Tiền/buổi (VNĐ)</label>
-                            <input type="number" id="tkbQuickRate" value="50000" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-emerald-700 bg-slate-100 outline-none">
+                        <div id="tkbQuickRateWrap">
+                            <label id="tkbQuickRateLabel" class="block text-xs font-bold text-slate-700 mb-1">Tiền/buổi (VNĐ)</label>
+                            <input type="number" id="tkbQuickRate" value="50000" step="1000" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-emerald-700 bg-slate-100 outline-none">
                         </div>
                         <div>
                             <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-md shadow-sky-100 transition flex items-center justify-center gap-1.5 active:scale-95">
@@ -980,7 +1015,7 @@
                             </h3>
                             <form id="formAdminCreateUser" class="space-y-2.5">
                                 <input type="text" id="admNewName" required placeholder="Tên giáo viên (VD: Thầy Nam)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
-                                <input type="email" id="admNewEmail" required placeholder="Email đăng nhập" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
+                                <input type="text" id="admNewEmail" required autocapitalize="none" placeholder="Tên đăng nhập hoặc Email" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
                                 <input type="text" id="admNewPass" required value="123456" placeholder="Mật khẩu khởi tạo" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
                                 <label class="flex items-center gap-2 text-xs text-slate-600">
                                     <input type="checkbox" id="admNewIsAdmin" class="rounded text-rose-600">
@@ -1136,38 +1171,34 @@
     <div id="tkbEditModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4 my-auto">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 id="tkbModalTitle" class="font-display font-bold text-slate-900 text-base">Cập nhật ca dạy</h3>
+                <div>
+                    <h3 id="tkbModalTitle" class="font-display font-bold text-slate-900 text-base">Cập nhật ca dạy</h3>
+                    <p id="tkbModalDateLabel" class="text-xs text-sky-600 font-bold mt-0.5"></p>
+                </div>
                 <button onclick="closeTkbModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div class="space-y-3">
                 <input type="hidden" id="tkbEditDate">
                 <input type="hidden" id="tkbEditSessionIdx">
-                
-                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-center">
-                    <p id="tkbModalDateLabel" class="text-sm font-bold text-sky-700"></p>
-                </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Tên môn học *</label>
-                    <input type="text" id="tkbEditSubject" placeholder="VD: Ứng dụng tin học, Trí tuệ nhân tạo..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                    <input type="text" id="tkbEditSubject" placeholder="VD: Trí tuệ nhân tạo..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Khóa / Lớp</label>
-                        <input type="text" id="tkbEditCourse" list="courseSuggestions" placeholder="VD: CNTT K25..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:border-sky-600">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Lịch của (Tùy chọn)</label>
-                        <input type="text" id="tkbEditOwner" list="ownerSuggestions" placeholder="Để trống cũng được..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:border-sky-600">
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Khóa / Lớp</label>
+                    <input type="text" id="tkbEditCourse" list="courseSuggestions" placeholder="VD: CNTT K25, K26..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Tên trung tâm / Trường *</label>
-                    <input type="text" id="tkbEditCenter" list="schoolSuggestions" placeholder="VD: Trung tâm Bình Tân, Ô Môn..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                    <input type="text" id="tkbEditCenter" list="schoolSuggestions" placeholder="VD: TT Ô Môn..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
                 </div>
-                <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Lịch của (Tùy chọn)</label>
+                    <input type="text" id="tkbEditOwner" list="ownerSuggestions" placeholder="Không bắt buộc..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-sky-600">
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức dạy *</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức</label>
                         <select id="tkbEditType" onchange="onModalTkbTypeChange()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none focus:border-sky-600">
                             <option value="offline">🏫 Offline (50k)</option>
                             <option value="online">💻 Online</option>
@@ -1175,130 +1206,112 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tiền / buổi (VNĐ)</label>
-                        <input type="number" id="tkbEditRate" value="50000" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-emerald-700 bg-slate-100 outline-none">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Thù lao (VNĐ)</label>
+                        <input type="number" id="tkbEditRate" value="50000" step="1000" readonly class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-extrabold text-emerald-700 bg-slate-100 outline-none">
                     </div>
                 </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="clearTkbSlot()" class="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition">Xóa ca này</button>
-                    <button type="button" onclick="saveTkbSlot()" class="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-md shadow-sky-100 transition">Lưu lên TKB</button>
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="button" onclick="clearTkbSlot()" class="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs transition">Xóa ca trống</button>
+                    <button type="button" onclick="saveTkbSlot()" class="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-md shadow-sky-100 transition">Lưu cập nhật</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 7: ĐỒNG BỘ LỊCH TUẦN VÀO GOOGLE CALENDAR -->
-    <div id="weekCalModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 my-auto">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                    <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
-                        <i data-lucide="calendar-check-2" class="w-5 h-5 text-emerald-600"></i> Liên Kết Lịch Tuần Vào Google Calendar
-                    </h3>
-                    <p id="weekCalModalSub" class="text-xs text-slate-500 mt-0.5">Chọn tải 1 file lịch cả tuần hoặc bấm thêm từng buổi vào Google Calendar</p>
-                </div>
-                <button onclick="closeWeekCalendarSyncModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-800">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
-
-            <!-- Option 1: Download .ICS File for whole week -->
-            <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-2.5">
-                <div class="flex items-start justify-between gap-2">
-                    <div>
-                        <h4 class="font-display font-bold text-xs sm:text-sm text-emerald-950">Cách 1: Đồng bộ 1 chạm toàn bộ lịch tuần (.ICS)</h4>
-                        <p class="text-[11px] text-emerald-800 mt-0.5">Tải file chuẩn lịch quốc tế (.ics) chứa tất cả các ca dạy trong tuần này để mở bằng Google Calendar hoặc Lịch iPhone/Laptop chỉ với 1 cú nhấp.</p>
-                    </div>
-                </div>
-                <button type="button" onclick="downloadWeekIcsFile()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition">
-                    <i data-lucide="download" class="w-4 h-4"></i> Tải file Lịch cả tuần (.ics) & Mở Lịch
-                </button>
-            </div>
-
-            <!-- Option 2: Direct Google Calendar Web Links per class -->
-            <div class="space-y-2">
-                <h4 class="font-display font-bold text-xs sm:text-sm text-slate-800">Cách 2: Bấm thêm trực tiếp từng ca vào Google Calendar Web</h4>
-                <div id="weekCalDirectLinksList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
-                    <!-- JS Injected -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 1: BẢNG KÊ TIN NHẮN ZALO (ĐÃ BỎ MÃ QR) -->
-    <div id="qrModal" class="hidden fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 my-auto">
+    <!-- MODAL 1: TẠO BẢNG KÊ ZALO ĐÒI NỢ KHÉO -->
+    <div id="qrModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
-                    <i data-lucide="message-square-text" class="w-5 h-5 text-indigo-600"></i> Bảng Kê Dạy Thay Gửi Zalo
+                    <i data-lucide="message-square-text" class="w-5 h-5 text-indigo-600"></i> Bảng kê gửi Zalo nhắc đồng nghiệp
                 </h3>
-                <button onclick="closeQrModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500 hover:text-slate-800">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
+                <button onclick="closeQrModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-
-            <div class="space-y-3">
-                <label class="block text-xs font-bold text-slate-700">Nội dung tin nhắn gửi Zalo / Messenger:</label>
-                <textarea id="zaloSummaryText" rows="9" class="w-full p-3.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50 outline-none resize-none leading-relaxed"></textarea>
-                <button onclick="copyTextareaContent('zaloSummaryText')" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-100 transition">
-                    <i data-lucide="copy" class="w-4 h-4"></i> Sao chép tin nhắn gửi Zalo
+            <textarea id="zaloSummaryText" rows="7" readonly class="w-full p-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 outline-none resize-none"></textarea>
+            <div class="flex gap-2">
+                <button type="button" onclick="copyTextareaContent('zaloSummaryText')" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Sao chép nội dung Zalo
                 </button>
+                <button type="button" onclick="closeQrModal()" class="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Đóng</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 3: ĐỔI MẬT KHẨU CÁ NHÂN -->
-    <div id="passwordModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-display font-bold text-slate-900 text-base">Đổi mật khẩu tài khoản</h3>
-                <button onclick="closePasswordModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
-            </div>
-            <form id="formChangePass" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu mới *</label>
-                    <input type="password" id="newPassInput" required minlength="4" placeholder="Nhập mật khẩu mới..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none">
-                </div>
-                <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm">Cập nhật mật khẩu</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 4: CÀI ĐẶT HẠN MỨC CHI TIÊU 3 TẦNG -->
+    <!-- MODAL 2: CÀI ĐẶT HẠN MỨC NGÂN SÁCH (150K/NGÀY - 1TR/TUẦN - 4TR/THÁNG) -->
     <div id="budgetModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
-                    <i data-lucide="bell-ring" class="w-5 h-5 text-rose-600"></i> Cài đặt Ngưỡng Cảnh Báo Chi Tiêu
+                    <i data-lucide="sliders-horizontal" class="w-5 h-5 text-indigo-600"></i> Cài Đặt Ngưỡng Cảnh Báo Chi Tiêu
                 </h3>
                 <button onclick="closeBudgetModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <form id="formBudgetLimits" class="space-y-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">☀️ Định mức tối đa 1 Ngày (VNĐ)</label>
-                    <input type="number" id="limitDayInput" required step="10000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Hạn mức chi tiêu Ngày (VNĐ)</label>
+                    <input type="number" id="limitDayInput" value="150000" step="10000" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:border-indigo-600">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">📅 Định mức tối đa 1 Tuần (VNĐ)</label>
-                    <input type="number" id="limitWeekInput" required step="50000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Hạn mức chi tiêu Tuần (VNĐ)</label>
+                    <input type="number" id="limitWeekInput" value="1000000" step="50000" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:border-indigo-600">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">🗓️ Định mức tối đa 1 Tháng (VNĐ)</label>
-                    <input type="number" id="limitMonthInput" required step="100000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Hạn mức chi tiêu Tháng (VNĐ)</label>
+                    <input type="number" id="limitMonthInput" value="4000000" step="100000" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold outline-none focus:border-indigo-600">
                 </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="resetDefaultBudgetLimits()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">Mặc định (150k / 1tr / 4tr)</button>
-                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-100 transition">Lưu định mức</button>
+                <div class="flex items-center justify-between gap-2 pt-2">
+                    <button type="button" onclick="resetDefaultBudgetLimits()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs">Về mặc định (150k)</button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md">Lưu hạn mức</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- FIREBASE CLOUD SYNC MODULE (Đồng bộ tài khoản & dữ liệu giữa Điện thoại và Laptop) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- MODAL 3: ĐỔI MẬT KHẨU TÀI KHOẢN -->
+    <div id="passwordModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i data-lucide="key-round" class="w-5 h-5 text-indigo-600"></i> Đổi mật khẩu cá nhân
+                </h3>
+                <button onclick="closePasswordModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form id="formChangePass" class="space-y-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu mới *</label>
+                    <input type="password" id="newPassInput" required minlength="4" placeholder="Nhập ít nhất 4 ký tự..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-indigo-600">
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md">Lưu mật khẩu mới</button>
+            </form>
+        </div>
+    </div>
 
+    <!-- MODAL 4: ĐỒNG BỘ TUẦN VÀO GOOGLE CALENDAR -->
+    <div id="weekCalModal" class="hidden fixed inset-0 z-[95] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 my-auto">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="font-display font-bold text-slate-900 text-base flex items-center gap-2">
+                        <i data-lucide="calendar-check" class="w-5 h-5 text-emerald-600"></i> Đồng Bộ Lịch Dạy Tuần Vào Google Calendar
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Chọn tải 1 file lịch cả tuần (.ics) hoặc bấm thêm nhanh từng buổi dạy bên dưới</p>
+                </div>
+                <button onclick="closeWeekCalendarSyncModal()" class="p-1.5 rounded-xl bg-slate-100 text-slate-500"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <button type="button" onclick="downloadWeekIcsFile()" class="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition">
+                <i data-lucide="download" class="w-4 h-4"></i> Tải 1 file Lịch cả tuần (.ics) mở trên Điện thoại / Laptop
+            </button>
+            <div class="space-y-2 max-h-72 overflow-y-auto pr-1" id="weekCalDirectLinksList">
+                <!-- JS Injected -->
+            </div>
+        </div>
+    </div>
+                
+    <!-- APPLICATION & FIREBASE CLOUD-FIRST SYNC ENGINE -->
+    <script>
+        // ============================================================================
+        // 1. FIREBASE CLOUD-FIRST ENGINE (ĐỒNG BỘ 100% GIỮA ĐIỆN THOẠI & LAPTOP)
+        // ============================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBLhhkP8emnXM-BY48q8xMFhOujgiTOBmg",
             authDomain: "giaovienbaton.firebaseapp.com",
@@ -1308,95 +1321,6 @@
             appId: "1:916540723369:web:29d31f26ae38753903d9b8"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const GLOBAL_DOC_REF = doc(db, "giaovienbaton_cloud", "app_master_state_v1");
-
-        let isApplyingRemote = false;
-
-        // Đẩy toàn bộ dữ liệu từ máy lên Firebase Cloud
-        window.pushLocalToFirebaseCloud = async () => {
-            if (isApplyingRemote) return;
-            try {
-                const payload = {};
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && k.startsWith('sotay_gv_') && k !== 'sotay_gv_pro_session_v3' && k !== 'sotay_gv_pro_remembered_v3') {
-                        payload[k] = localStorage.getItem(k);
-                    }
-                }
-                await setDoc(GLOBAL_DOC_REF, {
-                    updatedAt: Date.now(),
-                    storageData: payload
-                }, { merge: true });
-            } catch (err) {
-                console.warn("Firebase sync push warning:", err);
-            }
-        };
-
-        // Tải dữ liệu từ Firebase Cloud về máy khi mở web hoặc khi thiết bị khác vừa cập nhật
-        function applyCloudPayloadToLocal(storageData) {
-            if (!storageData) return;
-            isApplyingRemote = true;
-            try {
-                Object.keys(storageData).forEach(k => {
-                    if (k.startsWith('sotay_gv_') && k !== 'sotay_gv_pro_session_v3' && k !== 'sotay_gv_pro_remembered_v3') {
-                        const cloudVal = storageData[k];
-                        if (typeof cloudVal === 'string') {
-                            // Nếu là danh sách tài khoản, gộp thông minh để không mất tài khoản vừa tạo
-                            if (k === 'sotay_gv_pro_users_v3') {
-                                try {
-                                    const localUsers = JSON.parse(localStorage.getItem(k) || '[]');
-                                    const remoteUsers = JSON.parse(cloudVal || '[]');
-                                    const map = new Map();
-                                    localUsers.forEach(u => map.set(u.email.toLowerCase(), u));
-                                    remoteUsers.forEach(u => map.set(u.email.toLowerCase(), u));
-                                    localStorage.setItem(k, JSON.stringify(Array.from(map.values())));
-                                } catch (e) {
-                                    localStorage.setItem(k, cloudVal);
-                                }
-                            } else {
-                                localStorage.setItem(k, cloudVal);
-                            }
-                        }
-                    }
-                });
-                if (window.onCloudDataUpdated) window.onCloudDataUpdated();
-            } finally {
-                isApplyingRemote = false;
-            }
-        }
-
-        // Khởi động lắng nghe realtime từ Firebase
-        async function initCloudSync() {
-            try {
-                const snap = await getDoc(GLOBAL_DOC_REF);
-                if (snap.exists() && snap.data()?.storageData) {
-                    applyCloudPayloadToLocal(snap.data().storageData);
-                } else {
-                    await window.pushLocalToFirebaseCloud();
-                }
-            } catch (e) {
-                console.warn("Initial cloud fetch error:", e);
-            }
-
-            onSnapshot(GLOBAL_DOC_REF, (snapshot) => {
-                if (snapshot.exists() && snapshot.data()?.storageData) {
-                    applyCloudPayloadToLocal(snapshot.data().storageData);
-                }
-            }, (error) => {
-                console.warn("Realtime listener error:", error);
-            });
-        }
-
-        initCloudSync();
-    </script>
-
-    <!-- APPLICATION SCRIPT (Smart Hybrid Cloud + LocalStorage Engine) -->
-    <script>
-        // ============================================================================
-        // 1. SMART STORAGE ENGINE (100% GitHub Pages + Firebase Cloud Sync)
-        // ============================================================================
         const STORAGE_KEYS = {
             USERS: 'sotay_gv_pro_users_v3',
             SESSION: 'sotay_gv_pro_session_v3',
@@ -1405,19 +1329,259 @@
             CUSTOM_LOGO: 'sotay_gv_pro_custom_logo_v3'
         };
 
+        let db = null;
+        let masterDocRef = null;
+        let isApplyingRemote = false;
+        let cloudConnected = false;
+
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.firestore();
+            masterDocRef = db.collection("giaovienbaton_cloud").doc("app_master_state_v1");
+        } catch (err) {
+            console.error("Firebase init error:", err);
+        }
+
+        // Chuẩn hóa tên tài khoản / email (xóa dấu cách thừa, chữ thường, bỏ dấu tiếng Việt để so sánh linh hoạt)
+        function normalizeAccountKey(str) {
+            return String(str || '').trim().toLowerCase();
+        }
+
+        function setCloudStatusUI(status, message, userCount = 0) {
+            const authBadge = document.getElementById('authCloudStatusBadge');
+            const ruleBox = document.getElementById('firebaseRuleWarningBox');
+            const headerDot = document.getElementById('headerCloudDot');
+            const headerText = document.getElementById('headerCloudText');
+
+            if (ruleBox) {
+                ruleBox.classList.toggle('hidden', status !== 'permission-denied');
+            }
+
+            if (status === 'connected') {
+                cloudConnected = true;
+                if (authBadge) {
+                    authBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+                    authBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Đã kết nối Cloud (Đồng bộ thời gian thực)</span>`;
+                }
+                if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+                if (headerText) headerText.textContent = `Đã đồng bộ Cloud`;
+            } else if (status === 'permission-denied') {
+                cloudConnected = false;
+                if (authBadge) {
+                    authBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-300';
+                    authBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span><span>Chưa mở quyền Rules trên Firebase!</span>`;
+                }
+                if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-rose-600 animate-ping';
+                if (headerText) headerText.textContent = 'Lỗi Rules Firebase';
+            } else if (status === 'syncing') {
+                if (authBadge) {
+                    authBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200';
+                    authBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-sky-500 animate-ping"></span><span>${message || 'Đang đồng bộ Cloud...'}</span>`;
+                }
+            } else {
+                if (authBadge) {
+                    authBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200';
+                    authBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>${message || 'Chế độ ngoại tuyến'}</span>`;
+                }
+                if (headerDot) headerDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+                if (headerText) headerText.textContent = 'Ngoại tuyến';
+            }
+        }
+
+        // Gộp danh sách tài khoản từ Cloud và máy hiện tại để không bao giờ mất tài khoản
+        function mergeUsersSmart(localUsers, remoteUsers) {
+            const map = new Map();
+            (Array.isArray(localUsers) ? localUsers : []).forEach(u => {
+                if (u && u.email) map.set(normalizeAccountKey(u.email), u);
+            });
+            (Array.isArray(remoteUsers) ? remoteUsers : []).forEach(u => {
+                if (u && u.email) map.set(normalizeAccountKey(u.email), u);
+            });
+            return Array.from(map.values());
+        }
+
+        // Gộp mảng dữ liệu (TKB, Chi tiêu, Dạy thay, Ghi chú) theo ID để không bị ghi đè mất dữ liệu
+        function mergeArrayById(localArr, remoteArr) {
+            const map = new Map();
+            (Array.isArray(localArr) ? localArr : []).forEach(item => {
+                if (item && item.id) map.set(item.id, item);
+            });
+            (Array.isArray(remoteArr) ? remoteArr : []).forEach(item => {
+                if (item && item.id) map.set(item.id, item);
+            });
+            return Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        }
+
+        // Áp dụng dữ liệu từ Firebase Cloud xuống LocalStorage
+        function applyCloudPayloadToLocal(storageData) {
+            if (!storageData) return;
+            isApplyingRemote = true;
+            try {
+                Object.keys(storageData).forEach(k => {
+                    if (!k.startsWith('sotay_gv_') || k === STORAGE_KEYS.SESSION || k === STORAGE_KEYS.REMEMBERED) return;
+                    const cloudVal = storageData[k];
+                    if (typeof cloudVal !== 'string') return;
+
+                    if (k === STORAGE_KEYS.USERS) {
+                        try {
+                            const localU = JSON.parse(localStorage.getItem(k) || '[]');
+                            const remoteU = JSON.parse(cloudVal || '[]');
+                            const mergedU = mergeUsersSmart(localU, remoteU);
+                            localStorage.setItem(k, JSON.stringify(mergedU));
+                        } catch (e) {
+                            localStorage.setItem(k, cloudVal);
+                        }
+                    } else if (k.endsWith('_tkb') || k.endsWith('_settings')) {
+                        try {
+                            const localObj = JSON.parse(localStorage.getItem(k) || '{}');
+                            const remoteObj = JSON.parse(cloudVal || '{}');
+                            localStorage.setItem(k, JSON.stringify({ ...localObj, ...remoteObj }));
+                        } catch (e) {
+                            localStorage.setItem(k, cloudVal);
+                        }
+                    } else if (k.endsWith('_daythay') || k.endsWith('_chitieu') || k.endsWith('_ghichu')) {
+                        try {
+                            const localArr = JSON.parse(localStorage.getItem(k) || '[]');
+                            const remoteArr = JSON.parse(cloudVal || '[]');
+                            localStorage.setItem(k, JSON.stringify(mergeArrayById(localArr, remoteArr)));
+                        } catch (e) {
+                            localStorage.setItem(k, cloudVal);
+                        }
+                    } else {
+                        localStorage.setItem(k, cloudVal);
+                    }
+                });
+
+                const allUsers = getUsers();
+                setCloudStatusUI('connected', 'Đã đồng bộ Cloud', allUsers.length);
+                renderRememberedAccounts();
+
+                if (currentUser) {
+                    loadUserData(currentUser.uid);
+                    loadSystemBanner();
+                    refreshAllUI();
+                }
+            } finally {
+                isApplyingRemote = false;
+            }
+        }
+
+        // Đẩy toàn bộ dữ liệu từ máy hiện tại lên Firebase Cloud
+        window.pushLocalToFirebaseCloud = async () => {
+            if (isApplyingRemote || !masterDocRef) return false;
+            try {
+                // Đọc dữ liệu trên mây trước để gộp (tránh máy mới trống trơn ghi đè mất tài khoản trên mây)
+                let existingCloudData = {};
+                try {
+                    const snap = await masterDocRef.get({ source: 'server' });
+                    if (snap.exists && snap.data()?.storageData) {
+                        existingCloudData = snap.data().storageData;
+                    }
+                } catch (readErr) {
+                    if (readErr && readErr.code === 'permission-denied') {
+                        setCloudStatusUI('permission-denied');
+                        return false;
+                    }
+                }
+
+                // Gộp Cloud hiện có về máy trước
+                if (Object.keys(existingCloudData).length > 0) {
+                    applyCloudPayloadToLocal(existingCloudData);
+                }
+
+                const payload = { ...existingCloudData };
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('sotay_gv_') && k !== STORAGE_KEYS.SESSION && k !== STORAGE_KEYS.REMEMBERED) {
+                        payload[k] = localStorage.getItem(k);
+                    }
+                }
+
+                await masterDocRef.set({
+                    updatedAt: Date.now(),
+                    storageData: payload
+                }, { merge: true });
+
+                const allUsers = getUsers();
+                setCloudStatusUI('connected', 'Đã đồng bộ Cloud', allUsers.length);
+                renderRememberedAccounts();
+                return true;
+            } catch (err) {
+                console.warn("Firebase push error:", err);
+                if (err && err.code === 'permission-denied') {
+                    setCloudStatusUI('permission-denied');
+                } else {
+                    setCloudStatusUI('offline', 'Không thể kết nối mạng');
+                }
+                return false;
+            }
+        };
+
+        // Tải trực tiếp dữ liệu mới nhất từ Server Firebase về máy (Dùng ngay trước khi bấm Đăng nhập)
+        async function pullLatestFromFirebaseCloud() {
+            if (!masterDocRef) return false;
+            setCloudStatusUI('syncing', 'Đang tải tài khoản từ Cloud...');
+            try {
+                let snap;
+                try {
+                    snap = await masterDocRef.get({ source: 'server' });
+                } catch (e) {
+                    snap = await masterDocRef.get();
+                }
+                if (snap && snap.exists && snap.data()?.storageData) {
+                    applyCloudPayloadToLocal(snap.data().storageData);
+                    return true;
+                } else {
+                    await window.pushLocalToFirebaseCloud();
+                    return true;
+                }
+            } catch (err) {
+                console.warn("Firebase pull error:", err);
+                if (err && err.code === 'permission-denied') {
+                    setCloudStatusUI('permission-denied');
+                } else {
+                    setCloudStatusUI('offline', 'Lỗi kết nối Cloud');
+                }
+                return false;
+            }
+        }
+
+        // Nút bấm thủ công: Quét & Đẩy tài khoản từ máy lên Cloud
+        window.forceSyncAndVerifyCloud = async () => {
+            showToast('☁️ Đang quét và đồng bộ hai chiều với Firebase Cloud...');
+            const ok = await window.pushLocalToFirebaseCloud();
+            if (ok) {
+                const users = getUsers();
+                showToast(`✅ Đồng bộ thành công! Hiện có ${users.length} tài khoản trên Cloud.`);
+            } else {
+                showToast('⚠️ Chưa đồng bộ được! Hãy kiểm tra mục Rules trên Firebase Console.', true);
+            }
+        };
+
         function triggerCloudSync() {
             if (window.pushLocalToFirebaseCloud) {
                 window.pushLocalToFirebaseCloud();
             }
         }
 
-        window.onCloudDataUpdated = () => {
-            if (currentUser) {
-                loadUserData(currentUser.uid);
-                loadSystemBanner();
-                refreshAllUI();
-            }
-        };
+        // Khởi động kết nối Realtime với Firebase ngay khi mở trang
+        async function startRealtimeCloudEngine() {
+            if (!masterDocRef) return;
+            await pullLatestFromFirebaseCloud();
+
+            masterDocRef.onSnapshot((snapshot) => {
+                if (snapshot.exists && snapshot.data()?.storageData) {
+                    applyCloudPayloadToLocal(snapshot.data().storageData);
+                }
+            }, (error) => {
+                console.warn("Realtime listener error:", error);
+                if (error && error.code === 'permission-denied') {
+                    setCloudStatusUI('permission-denied');
+                }
+            });
+        }
 
         // Bộ câu thoại cảnh báo chi tiêu hài hước, than nghèo kể khổ khi vượt 150k
         const FUNNY_POOR_WARNINGS = [
@@ -1632,97 +1796,174 @@
             refreshAllUI();
         };
 
-        // ============================================================================
-        // 3. AUTHENTICATION & REMEMBER ACCOUNT ENGINE
-        // ============================================================================
         window.toggleAuthMode = () => {
             isLoginMode = !isLoginMode;
-            document.getElementById('nameFieldWrap').classList.toggle('hidden', isLoginMode);
-            document.getElementById('authTitle').innerHTML = isLoginMode
-                ? 'GIÁO VIÊN BẤT ỔN<br><span class="text-sky-600">TÀI CHÍNH BẤT LỰC</span>'
-                : 'ĐĂNG KÝ TÀI KHOẢN<br><span class="text-sky-600">GIÁO VIÊN BẤT ỔN</span>';
-            document.getElementById('authSubmitBtn').textContent = isLoginMode ? 'Đăng nhập vào hệ thống' : 'Tạo tài khoản ngay';
-            document.getElementById('authToggleText').textContent = isLoginMode ? 'Chưa có tài khoản?' : 'Đã có tài khoản?';
-            document.getElementById('authToggleBtn').textContent = isLoginMode ? 'Đăng ký ngay' : 'Đăng nhập';
+            const nameWrap = document.getElementById('nameFieldWrap');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const toggleText = document.getElementById('authToggleText');
+            const toggleBtn = document.getElementById('authToggleBtn');
+
+            if (isLoginMode) {
+                nameWrap.classList.add('hidden');
+                submitBtn.textContent = 'Đăng nhập vào hệ thống';
+                toggleText.textContent = 'Chưa có tài khoản?';
+                toggleBtn.textContent = 'Đăng ký ngay';
+            } else {
+                nameWrap.classList.remove('hidden');
+                submitBtn.textContent = 'Đăng ký tài khoản mới';
+                toggleText.textContent = 'Đã có tài khoản?';
+                toggleBtn.textContent = 'Đăng nhập ngay';
+            }
         };
 
-        function saveRememberedAccount(email, password) {
+        function saveRememberedAccount(email, password, name = '') {
             try {
                 let list = JSON.parse(localStorage.getItem(STORAGE_KEYS.REMEMBERED) || '[]');
-                list = list.filter(item => item.email.toLowerCase() !== email.toLowerCase());
-                list.unshift({ email, password });
+                list = list.filter(item => normalizeAccountKey(item.email) !== normalizeAccountKey(email));
+                list.unshift({ email, password, name });
                 localStorage.setItem(STORAGE_KEYS.REMEMBERED, JSON.stringify(list.slice(0, 5)));
             } catch (e) {}
         }
 
+        window.removeRememberedAccount = (event, email) => {
+            if (event) event.stopPropagation();
+            try {
+                let list = JSON.parse(localStorage.getItem(STORAGE_KEYS.REMEMBERED) || '[]');
+                list = list.filter(item => normalizeAccountKey(item.email) !== normalizeAccountKey(email));
+                localStorage.setItem(STORAGE_KEYS.REMEMBERED, JSON.stringify(list));
+                renderRememberedAccounts();
+                showToast('Đã xóa tài khoản khỏi danh sách ghi nhớ trên máy này');
+            } catch (e) {}
+        };
+
         function renderRememberedAccounts() {
             try {
-                const list = JSON.parse(localStorage.getItem(STORAGE_KEYS.REMEMBERED) || '[]');
+                // CHỈ lấy danh sách tài khoản đã từng đăng nhập/đăng ký và lưu trên CHÍNH THIẾT BỊ NÀY
+                const remembered = JSON.parse(localStorage.getItem(STORAGE_KEYS.REMEMBERED) || '[]');
+                const allUsers = getUsers();
                 const box = document.getElementById('savedAccountsBox');
                 const container = document.getElementById('savedAccountsList');
                 if (!box || !container) return;
-                if (!list.length) {
+
+                if (!remembered.length) {
                     box.classList.add('hidden');
+                    container.innerHTML = '';
                     return;
                 }
                 box.classList.remove('hidden');
-                container.innerHTML = list.map(acc => `
-                    <button type="button" onclick="quickFillSavedAccount('${escapeHtml(acc.email)}', '${escapeHtml(acc.password)}')"
-                        class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold flex items-center gap-1 transition">
-                        <span>👤 ${escapeHtml(acc.email)}</span>
-                    </button>
-                `).join('');
+                container.innerHTML = remembered.map(acc => {
+                    const matchedUser = allUsers.find(u => normalizeAccountKey(u.email) === normalizeAccountKey(acc.email));
+                    const displayName = acc.name || (matchedUser && matchedUser.name) || acc.email;
+                    return `
+                        <div class="inline-flex items-center rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200/80 text-xs font-bold transition overflow-hidden">
+                            <button type="button" onclick="quickFillSavedAccount('${escapeHtml(acc.email)}', '${escapeHtml(acc.password || '')}')"
+                                class="px-2.5 py-1 flex items-center gap-1">
+                                <span>👤 ${escapeHtml(displayName)} (${escapeHtml(acc.email)})</span>
+                            </button>
+                            <button type="button" onclick="removeRememberedAccount(event, '${escapeHtml(acc.email)}')"
+                                class="px-1.5 py-1 hover:bg-rose-100 hover:text-rose-600 text-slate-400 border-l border-sky-200/60 transition" title="Xóa khỏi thiết bị này">
+                                ✕
+                            </button>
+                        </div>
+                    `;
+                }).join('');
             } catch (e) {}
         }
 
         window.quickFillSavedAccount = (email, password) => {
             if (!isLoginMode) toggleAuthMode();
             document.getElementById('authEmail').value = email;
-            document.getElementById('authPassword').value = password;
-            showToast('Đã điền tài khoản đã lưu!');
+            if (password) {
+                document.getElementById('authPassword').value = password;
+                showToast(`Đã điền tài khoản ${email}!`);
+            } else {
+                document.getElementById('authPassword').value = '';
+                document.getElementById('authPassword').focus();
+                showToast(`Đã chọn ${email}, vui lòng nhập mật khẩu!`);
+            }
         };
 
-        document.getElementById('authForm').addEventListener('submit', (e) => {
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('authEmail').value.trim().toLowerCase();
-            const password = document.getElementById('authPassword').value;
+            const rawInput = document.getElementById('authEmail').value;
+            const inputKey = normalizeAccountKey(rawInput);
+            const password = document.getElementById('authPassword').value.trim();
+            const rawPassword = document.getElementById('authPassword').value;
             const name = document.getElementById('authName').value.trim();
             const remember = document.getElementById('rememberMe').checked;
+            const submitBtn = document.getElementById('authSubmitBtn');
 
-            const users = getUsers();
+            if (!inputKey) {
+                showToast('Vui lòng nhập Tên đăng nhập hoặc Email!', true);
+                return;
+            }
 
-            if (isLoginMode) {
-                const found = users.find(u => u.email.toLowerCase() === email && u.password === password);
-                if (!found) {
-                    showToast('Email hoặc mật khẩu không chính xác!', true);
-                    return;
+            const originalBtnText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Đang đồng bộ tài khoản từ Cloud...';
+
+            try {
+                // BƯỚC QUAN TRỌNG NHẤT: Luôn kéo danh sách tài khoản mới nhất từ Firebase về trước khi kiểm tra!
+                await pullLatestFromFirebaseCloud();
+
+                const users = getUsers();
+
+                if (isLoginMode) {
+                    // Tìm khớp linh hoạt theo cả email/username hoặc tên hiển thị (không phân biệt chữ hoa/thường)
+                    const found = users.find(u => {
+                        const uEmailKey = normalizeAccountKey(u.email);
+                        const uEmailPrefix = uEmailKey.split('@')[0];
+                        const uNameKey = normalizeAccountKey(u.name);
+                        const isUserMatch = (uEmailKey === inputKey) || (uEmailPrefix === inputKey) || (uNameKey && uNameKey === inputKey);
+                        const isPassMatch = (u.password === rawPassword) || (String(u.password).trim() === password);
+                        return isUserMatch && isPassMatch;
+                    });
+
+                    if (!found) {
+                        const userExists = users.find(u => {
+                            const uEmailKey = normalizeAccountKey(u.email);
+                            const uEmailPrefix = uEmailKey.split('@')[0];
+                            const uNameKey = normalizeAccountKey(u.name);
+                            return (uEmailKey === inputKey) || (uEmailPrefix === inputKey) || (uNameKey && uNameKey === inputKey);
+                        });
+                        if (userExists) {
+                            showToast('Mật khẩu chưa chính xác! Vui lòng kiểm tra lại.', true);
+                        } else {
+                            showToast(`Không tìm thấy tài khoản "${rawInput.trim()}" trên Cloud! Nếu bạn vừa tạo trên máy tính, hãy bấm nút "Quét & Đồng bộ" trên máy tính nhé.`, true);
+                        }
+                        return;
+                    }
+                    if (found.locked) {
+                        showToast('Tài khoản này đã bị Admin tạm khóa!', true);
+                        return;
+                    }
+                    if (remember) saveRememberedAccount(found.email, found.password, found.name);
+                    loginSuccess(found);
+                } else {
+                    if (users.some(u => normalizeAccountKey(u.email) === inputKey)) {
+                        showToast('Tài khoản này đã tồn tại trên Cloud! Vui lòng chuyển sang Đăng nhập.', true);
+                        return;
+                    }
+                    const isAdminEmail = inputKey === 'admin@gmail.com' || inputKey === 'admin';
+                    const newUser = {
+                        uid: 'user-' + Date.now(),
+                        name: name || rawInput.trim().split('@')[0],
+                        email: inputKey,
+                        password: rawPassword,
+                        role: isAdminEmail ? 'admin' : 'member',
+                        locked: false,
+                        createdAt: Date.now()
+                    };
+                    users.push(newUser);
+                    saveUsers(users);
+                    await window.pushLocalToFirebaseCloud();
+                    if (remember) saveRememberedAccount(inputKey, rawPassword, newUser.name);
+                    showToast('✅ Đăng ký & Lưu tài khoản lên Cloud thành công!');
+                    loginSuccess(newUser);
                 }
-                if (found.locked) {
-                    showToast('Tài khoản này đã bị Admin tạm khóa!', true);
-                    return;
-                }
-                if (remember) saveRememberedAccount(email, password);
-                loginSuccess(found);
-            } else {
-                if (users.some(u => u.email.toLowerCase() === email)) {
-                    showToast('Email này đã được đăng ký! Vui lòng đăng nhập.', true);
-                    return;
-                }
-                const isAdminEmail = email === 'admin@gmail.com';
-                const newUser = {
-                    uid: 'user-' + Date.now(),
-                    name: name || email.split('@')[0],
-                    email,
-                    password,
-                    role: isAdminEmail ? 'admin' : 'member',
-                    locked: false,
-                    createdAt: Date.now()
-                };
-                users.push(newUser);
-                saveUsers(users);
-                if (remember) saveRememberedAccount(email, password);
-                showToast('Đăng ký tài khoản thành công!');
-                loginSuccess(newUser);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
             }
         });
 
@@ -3098,13 +3339,26 @@
         window.onQuickTkbTypeChange = () => {
             const type = document.getElementById('tkbQuickType').value;
             const rateInp = document.getElementById('tkbQuickRate');
+            const rateLbl = document.getElementById('tkbQuickRateLabel');
             if (type === 'offline') {
+                if (rateLbl) rateLbl.textContent = 'Tiền/buổi (Cố định)';
                 rateInp.value = 50000;
                 rateInp.readOnly = true;
                 rateInp.classList.add('bg-slate-100');
-            } else {
+                rateInp.classList.remove('ring-2', 'ring-amber-300', 'bg-white');
+            } else if (type === 'gacthi') {
+                if (rateLbl) rateLbl.textContent = 'Nhập tiền Gác thi (VNĐ) *';
                 rateInp.readOnly = false;
                 rateInp.classList.remove('bg-slate-100');
+                rateInp.classList.add('bg-white', 'ring-2', 'ring-amber-300');
+                if (Number(rateInp.value) === 50000) rateInp.value = '';
+                rateInp.placeholder = 'Nhập số tiền gác thi...';
+                rateInp.focus();
+            } else {
+                if (rateLbl) rateLbl.textContent = 'Nhập tiền Online (VNĐ)';
+                rateInp.readOnly = false;
+                rateInp.classList.remove('bg-slate-100', 'ring-2', 'ring-amber-300');
+                rateInp.classList.add('bg-white');
                 if (Number(rateInp.value) === 50000) rateInp.value = 0;
                 rateInp.focus();
             }
@@ -3120,6 +3374,11 @@
             } else {
                 rateInp.readOnly = false;
                 rateInp.classList.remove('bg-slate-100');
+                if (type === 'gacthi' && Number(rateInp.value) === 50000) {
+                    rateInp.value = '';
+                    rateInp.placeholder = 'Nhập tiền gác thi...';
+                }
+                rateInp.focus();
             }
         };
 
@@ -3664,6 +3923,7 @@
             initSystemUsers();
             applyCustomLogo();
             renderRememberedAccounts();
+            startRealtimeCloudEngine();
             try {
                 const savedSession = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSION) || 'null');
                 if (savedSession && savedSession.uid) {
